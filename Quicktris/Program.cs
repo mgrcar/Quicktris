@@ -1,59 +1,33 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 
 namespace Quicktris
 {
     class Program
     {
-        public class Area
+        public class Playfield
         {
-            public int[,] mScreen
+            public int[,] mGrid
                 = new int[10, 20];
-            public int[,] mBuffer
+            public int[,] mGridBkgr
                 = new int[10, 20];
-
-            public void Copy()
-            { 
-                // mArea -> mAreaCopy
-                Array.Copy(mScreen, mBuffer, mScreen.Length);
-            }
 
             public void Update(Block block, int color)
             {
-                // mAreaCopy -> mArea
-                Array.Copy(mBuffer, mScreen, mBuffer.Length);
-                // block -> mArea
+                // mGridBkgr -> mGrid
+                Array.Copy(mGridBkgr, mGrid, mGridBkgr.Length);
+                // block -> mGrid
                 string[] shape = block.mShape[block.mRot];
-                for (int blockY = 0, areaY = block.mPosY; blockY < 4 && areaY < 20; blockY++, areaY++)
+                for (int blockY = 0, gridY = block.mPosY; blockY < 4 && gridY < 20; blockY++, gridY++)
                 {
-                    for (int blockX = 0, areaX = block.mPosX; blockX < 4 && areaX < 10; blockX++, areaX++)
+                    for (int blockX = 0, gridX = block.mPosX; blockX < 4 && gridX < 10; blockX++, gridX++)
                     {
                         if (shape[blockY][blockX] == '1')
                         {
-                            mScreen[areaX, areaY] = color;
+                            mGrid[gridX, gridY] = color;
                         }
                     }
-                }
-            }
-
-            private char GetChar(byte b)
-            {
-                return Encoding.GetEncoding(437).GetChars(new byte[] { b })[0];
-            }
-
-            public void OutputToConsole(int left, int top)
-            {
-                Console.CursorTop = top;
-                for (int row = 0; row < 20; row++)
-                {
-                    Console.CursorLeft = left;
-                    for (int col = 0; col < 10; col++)
-                    {
-                        char ch = col % 2 == 0 ? ' ' : '.';
-                        if (mScreen[col, row] != 0) { ch = GetChar(219); }
-                        Console.Write(ch);
-                    }
-                    Console.WriteLine();
                 }
             }
         }
@@ -76,11 +50,11 @@ namespace Quicktris
             public bool Check(int posX, int posY, int rot)
             {
                 string[] shape = mShape[rot];
-                for (int blockY = 0, areaY = posY; blockY < 4; blockY++, areaY++)
+                for (int blockY = 0, gridY = posY; blockY < 4; blockY++, gridY++)
                 {
-                    for (int blockX = 0, areaX = posX; blockX < 4; blockX++, areaX++)
+                    for (int blockX = 0, gridX = posX; blockX < 4; blockX++, gridX++)
                     {
-                        if (shape[blockY][blockX] == '1' && (areaX < 0 || areaY < 0 || areaX >= 10 || areaY >= 20 || Program.mArea.mBuffer[areaX, areaY] != 0))
+                        if (shape[blockY][blockX] == '1' && (gridX < 0 || gridY < 0 || gridX >= 10 || gridY >= 20 || mPlayfield.mGridBkgr[gridX, gridY] != 0))
                         {
                             return false;
                         }
@@ -112,6 +86,105 @@ namespace Quicktris
                 int rot = (mRot + 1) % 4;
                 if (Check(mPosX, mPosY, rot)) { mRot = rot; return true; }
                 return false;
+            }
+        }
+
+        public class Renderer
+        {
+            public static char GetChar(byte b)
+            {
+                return Encoding.GetEncoding(437).GetChars(new byte[] { b })[0];
+            }
+
+            public static void Init()
+            {
+                Console.SetWindowSize(40, 25);
+                Console.BufferWidth = 40;
+                Console.BufferHeight = 25;
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.WriteLine();
+                Console.WriteLine("Your level: 0");
+                Console.WriteLine("Full lines: 0");
+                Console.WriteLine("                             STATISTICS");
+                Console.Write(" Score:    ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("0");
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write("                            {0}{0}{0}    -   0", GetChar(219));
+                Console.WriteLine("                            {0}", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("   H E L P                    ");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("{0}{0}{0}{0} -   0", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.WriteLine();
+                Console.Write("F1:Pause                    ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("{0}{0}{0}    -   0", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(" 7:Left                      ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("{0}", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(" 9:Right                        ");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("{0}{0} -   0", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(" 8:Rotate                      ");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("{0}{0}", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(" 1:Draw next                ");
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("{0}{0}     -   0", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(" 6:Speed up                  ");
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine("{0}{0}", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(" 4:Drop                         ");
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.Write("{0}{0} -   0", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("  SPACE:Drop                    ");
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("{0}{0}", GetChar(219));
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("                            {0}{0}{0}    -   0", GetChar(219));
+                Console.WriteLine("                              {0}", GetChar(219));
+                Console.Write("   Next:                    ------------");
+                Console.Write("                            Sum    :   0");
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("              Play TETRIS !");
+                Console.CursorTop = 1;
+                Console.ForegroundColor = ConsoleColor.Blue;
+                for (int i = 0; i < 20; i++)
+                {
+                    Console.CursorLeft = 14;
+                    Console.WriteLine("*          *");
+                }
+                Console.CursorLeft = 14;
+                Console.WriteLine("************");
+            }
+
+            public static void RenderPlayfield()
+            {
+                Console.CursorTop = 1;
+                for (int row = 0; row < 20; row++)
+                {
+                    Console.CursorLeft = 15;
+                    for (int col = 0; col < 10; col++)
+                    {
+                        char ch = col % 2 == 0 ? ' ' : '.';
+                        if (mPlayfield.mGrid[col, row] != 0) { ch = GetChar(219); }
+                        Console.Write(ch);
+                    }
+                    Console.WriteLine();
+                }            
             }
         }
 
@@ -192,34 +265,39 @@ namespace Quicktris
             };
         #endregion
 
-        public static Area mArea
-            = new Area();
+        public static Playfield mPlayfield
+            = new Playfield();
 
         static void Main(string[] args)
         {
-            Console.Clear();
-            mArea.Update(mBlocks[0], 1);
-            mArea.OutputToConsole(10, 10);
+            Renderer.Init();
+            Block block = mBlocks[0];
+            mPlayfield.Update(block, 1);
+            Renderer.RenderPlayfield();
             while (true)
             {
-                ConsoleKeyInfo ki = Console.ReadKey();
-                switch (ki.Key)
+                if (Console.KeyAvailable)
                 {
-                    case ConsoleKey.LeftArrow: 
-                        mBlocks[0].MoveLeft(); 
-                        break;
-                    case ConsoleKey.RightArrow: 
-                        mBlocks[0].MoveRight(); 
-                        break;
-                    case ConsoleKey.DownArrow: 
-                        mBlocks[0].MoveDown(); 
-                        break;
-                    case ConsoleKey.UpArrow:
-                        mBlocks[0].Rotate();
-                        break;
+                    ConsoleKeyInfo key = Console.ReadKey(true);
+                    switch (key.Key)
+                    {
+                        case ConsoleKey.LeftArrow:
+                            block.MoveLeft();
+                            break;
+                        case ConsoleKey.RightArrow:
+                            block.MoveRight();
+                            break;
+                        case ConsoleKey.DownArrow:
+                            block.MoveDown();
+                            break;
+                        case ConsoleKey.UpArrow:
+                            block.Rotate();
+                            break;
+                    }
+                    mPlayfield.Update(block, 1);
+                    Renderer.RenderPlayfield();
                 }
-                mArea.Update(mBlocks[0], 1);
-                mArea.OutputToConsole(10, 10);
+                Thread.Sleep(1);
             }
         }
     }
