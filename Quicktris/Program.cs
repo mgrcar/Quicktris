@@ -6,14 +6,20 @@ namespace Quicktris
 {
     class Program
     {
-        public class Playfield
+        static class Playfield
         {
-            public int[,] mGrid
+            public static int[,] mGrid
                 = new int[10, 20];
-            public int[,] mGridBkgr
+            public static int[,] mGridBkgr
                 = new int[10, 20];
 
-            public void Update(Block block, int color)
+            public static void UpdateBkgr()
+            {
+                // mGrid -> mGridBkgr
+                Array.Copy(mGrid, mGridBkgr, mGrid.Length);
+            }
+
+            public static void Update(Block block)
             {
                 // mGridBkgr -> mGrid
                 Array.Copy(mGridBkgr, mGrid, mGridBkgr.Length);
@@ -25,26 +31,28 @@ namespace Quicktris
                     {
                         if (shape[blockY][blockX] == '1')
                         {
-                            mGrid[gridX, gridY] = color;
+                            mGrid[gridX, gridY] = block.mType;
                         }
                     }
                 }
             }
         }
 
-        public class Block
+        class Block : ICloneable
         {
             public string[][] mShape;
+            public int mType;
             public int mRot
                 = 0;
             public int mPosX
-                = 0;
+                = 3;
             public int mPosY
-                = 0;
+                = -1;
 
-            public Block(string[][] shape)
+            public Block(string[][] shape, int type)
             {
                 mShape = shape;
+                mType = type;
             }
 
             public bool Check(int posX, int posY, int rot)
@@ -54,7 +62,7 @@ namespace Quicktris
                 {
                     for (int blockX = 0, gridX = posX; blockX < 4; blockX++, gridX++)
                     {
-                        if (shape[blockY][blockX] == '1' && (gridX < 0 || gridY < 0 || gridX >= 10 || gridY >= 20 || mPlayfield.mGridBkgr[gridX, gridY] != 0))
+                        if (shape[blockY][blockX] == '1' && (gridX < 0 || gridY < 0 || gridX >= 10 || gridY >= 20 || Playfield.mGridBkgr[gridX, gridY] != 0))
                         {
                             return false;
                         }
@@ -87,11 +95,33 @@ namespace Quicktris
                 if (Check(mPosX, mPosY, rot)) { mRot = rot; return true; }
                 return false;
             }
-        }
 
-        public class Renderer
+            public object Clone()
+            {
+                Block block = new Block(mShape, mType);
+                block.mPosX = mPosX;
+                block.mPosY = mPosY;
+                block.mRot = mRot;
+                return block;
+            }
+        }
+        
+        static class Renderer
         {
-            public static char GetChar(byte b)
+            private static ConsoleColor[] mConsoleColors
+                = new ConsoleColor[]
+                {
+                    (ConsoleColor)0,
+                    ConsoleColor.Magenta,
+                    ConsoleColor.Red,
+                    ConsoleColor.Yellow,
+                    ConsoleColor.Green,
+                    ConsoleColor.Cyan,
+                    ConsoleColor.Blue,
+                    ConsoleColor.Gray
+                };
+
+            private static char GetChar(byte b)
             {
                 return Encoding.GetEncoding(437).GetChars(new byte[] { b })[0];
             }
@@ -173,15 +203,21 @@ namespace Quicktris
 
             public static void RenderPlayfield()
             {
-                Console.CursorTop = 1;
+                Console.CursorTop = 1;                
                 for (int row = 0; row < 20; row++)
                 {
                     Console.CursorLeft = 15;
                     for (int col = 0; col < 10; col++)
                     {
                         char ch = col % 2 == 0 ? ' ' : '.';
-                        if (mPlayfield.mGrid[col, row] != 0) { ch = GetChar(219); }
+                        int type = Playfield.mGrid[col, row];
+                        if (type != 0) 
+                        { 
+                            ch = GetChar(219);
+                            Console.ForegroundColor = mConsoleColors[type];
+                        }
                         Console.Write(ch);
+                        Console.ForegroundColor = ConsoleColor.Blue;
                     }
                     Console.WriteLine();
                 }            
@@ -196,89 +232,97 @@ namespace Quicktris
                 (
                     new string[][] 
                     { 
-                        "0000,1110,1000,0000".Split(','),
-                        "0100,0100,0110,0000".Split(','),
-                        "0010,1110,0000,0000".Split(','),
-                        "1100,0100,0100,0000".Split(',')
-                    }
+                        "0000,0111,0100,0000".Split(','),
+                        "0010,0010,0011,0000".Split(','),
+                        "0001,0111,0000,0000".Split(','),
+                        "0110,0010,0010,0000".Split(',')
+                    }, 1
                 ),
                 new Block
                 (
                     new string[][] 
                     { 
-                        "0000,1110,1000,0000".Split(','),
-                        "0100,0100,0110,0000".Split(','),
-                        "0010,1110,0000,0000".Split(','),
-                        "1100,0100,0100,0000".Split(',')
-                    }
+                        "0000,1111,0000,0000".Split(','),
+                        "0010,0010,0010,0010".Split(','),
+                        "0000,1111,0000,0000".Split(','),
+                        "0010,0010,0010,0010".Split(',')
+                    }, 2
                 ),
                 new Block
                 (
                     new string[][] 
                     { 
-                        "0000,1110,1000,0000".Split(','),
-                        "0100,0100,0110,0000".Split(','),
-                        "0010,1110,0000,0000".Split(','),
-                        "1100,0100,0100,0000".Split(',')
-                    }
+                        "0000,0111,0010,0000".Split(','),
+                        "0010,0011,0010,0000".Split(','),
+                        "0010,0111,0000,0000".Split(','),
+                        "0010,0110,0010,0000".Split(',')
+                    }, 3
                 ),
                 new Block
                 (
                     new string[][] 
                     { 
-                        "0000,1110,1000,0000".Split(','),
-                        "0100,0100,0110,0000".Split(','),
-                        "0010,1110,0000,0000".Split(','),
-                        "1100,0100,0100,0000".Split(',')
-                    }
+                        "0000,0011,0110,0000".Split(','),
+                        "0010,0011,0001,0000".Split(','),
+                        "0000,0011,0110,0000".Split(','),
+                        "0010,0011,0001,0000".Split(',')
+                    }, 4
                 ),
                 new Block
                 (
                     new string[][] 
                     { 
-                        "0000,1110,1000,0000".Split(','),
-                        "0100,0100,0110,0000".Split(','),
-                        "0010,1110,0000,0000".Split(','),
-                        "1100,0100,0100,0000".Split(',')
-                    }
+                        "0000,0110,0011,0000".Split(','),
+                        "0001,0011,0010,0000".Split(','),
+                        "0000,0110,0011,0000".Split(','),
+                        "0001,0011,0010,0000".Split(',')
+                    }, 5
                 ),
                 new Block
                 (
                     new string[][] 
                     { 
-                        "0000,1110,1000,0000".Split(','),
-                        "0100,0100,0110,0000".Split(','),
-                        "0010,1110,0000,0000".Split(','),
-                        "1100,0100,0100,0000".Split(',')
-                    }
+                        "0000,0110,0110,0000".Split(','),
+                        "0000,0110,0110,0000".Split(','),
+                        "0000,0110,0110,0000".Split(','),
+                        "0000,0110,0110,0000".Split(',')
+                    }, 6
                 ),
                 new Block
                 (
                     new string[][] 
                     { 
-                        "0000,1110,1000,0000".Split(','),
-                        "0100,0100,0110,0000".Split(','),
-                        "0010,1110,0000,0000".Split(','),
-                        "1100,0100,0100,0000".Split(',')
-                    }
+                        "0000,0111,0001,0000".Split(','),
+                        "0011,0010,0010,0000".Split(','),
+                        "0100,0111,0000,0000".Split(','),
+                        "0010,0010,0110,0000".Split(',')
+                    }, 7
                 )
             };
         #endregion
 
-        public static Playfield mPlayfield
-            = new Playfield();
+        static Random mRandom
+            = new Random();
+
+        static Block GetRandomBlock()
+        {
+            return (Block)mBlocks[mRandom.Next(7)].Clone();
+        }
 
         static void Main(string[] args)
         {
             Renderer.Init();
-            Block block = mBlocks[0];
-            mPlayfield.Update(block, 1);
+            Block block = GetRandomBlock();
+            Playfield.Update(block);
             Renderer.RenderPlayfield();
+            DateTime moveTimer = DateTime.Now;
+            bool render = false;
             while (true)
             {
                 if (Console.KeyAvailable)
                 {
                     ConsoleKeyInfo key = Console.ReadKey(true);
+                    while (Console.KeyAvailable) { Console.ReadKey(true); }
                     switch (key.Key)
                     {
                         case ConsoleKey.LeftArrow:
@@ -294,10 +338,27 @@ namespace Quicktris
                             block.Rotate();
                             break;
                     }
-                    mPlayfield.Update(block, 1);
-                    Renderer.RenderPlayfield();
+                    Playfield.Update(block);
+                    render = true;
                 }
                 Thread.Sleep(1);
+                DateTime now = DateTime.Now;
+                if ((now - moveTimer).TotalMilliseconds >= 500)
+                {
+                    moveTimer = now;
+                    if (!block.MoveDown())
+                    {
+                        Playfield.UpdateBkgr();
+                        block = GetRandomBlock();
+                    }
+                    Playfield.Update(block);
+                    render = true;
+                }
+                if (render)
+                {                    
+                    Renderer.RenderPlayfield();
+                    render = false;
+                }
             }
         }
     }
