@@ -39,7 +39,7 @@ namespace Quicktris
 
             public static void Collapse()
             {
-                int[,] tmp = new int[10, 20];
+                int[,] tmp = new int[20, 10];
                 int yTmp = 19;
                 bool render = false;
                 for (int y = 19; y >= 0; y--)
@@ -57,7 +57,6 @@ namespace Quicktris
                     }
                     else
                     { 
-                        // copy line to tmp
                         Array.Copy(mGrid, y * 10, tmp, yTmp * 10, 10);
                         yTmp--;                        
                     }
@@ -87,9 +86,9 @@ namespace Quicktris
                 mType = type;
             }
 
-            public bool Check(int posX, int posY, int rot)
+            public static bool Check(int posX, int posY, int rot)
             {
-                string[] shape = mShape[rot];
+                string[] shape = mBlock.mShape[rot];
                 for (int blockY = 0, gridY = posY; blockY < 4; blockY++, gridY++)
                 {
                     for (int blockX = 0, gridX = posX; blockX < 4; blockX++, gridX++)
@@ -103,32 +102,32 @@ namespace Quicktris
                 return true;
             }
 
-            public bool MoveLeft()
+            public static bool MoveLeft()
             {
-                if (Check(mPosX - 1, mPosY, mRot)) { mPosX--; Playfield.UpdateBlock(); return true; }
+                if (Check(mBlock.mPosX - 1, mBlock.mPosY, mBlock.mRot)) { mBlock.mPosX--; Playfield.UpdateBlock(); return true; }
                 return false;
             }
 
-            public bool MoveRight()
+            public static bool MoveRight()
             {
-                if (Check(mPosX + 1, mPosY, mRot)) { mPosX++; Playfield.UpdateBlock(); return true; }
+                if (Check(mBlock.mPosX + 1, mBlock.mPosY, mBlock.mRot)) { mBlock.mPosX++; Playfield.UpdateBlock(); return true; }
                 return false;
             }
 
-            public bool MoveDown()
+            public static bool MoveDown()
             {
-                if (Check(mPosX, mPosY + 1, mRot)) { mPosY++; Playfield.UpdateBlock(); return true; }
+                if (Check(mBlock.mPosX, mBlock.mPosY + 1, mBlock.mRot)) { mBlock.mPosY++; Playfield.UpdateBlock(); return true; }
                 return false;
             }
 
-            public bool Rotate()
+            public static bool Rotate()
             {
-                int rot = (mRot + 1) % 4;
-                if (Check(mPosX, mPosY, rot)) { mRot = rot; Playfield.UpdateBlock(); return true; }
+                int rot = (mBlock.mRot + 1) % 4;
+                if (Check(mBlock.mPosX, mBlock.mPosY, rot)) { mBlock.mRot = rot; Playfield.UpdateBlock(); return true; }
                 return false;
             }
 
-            public void Drop()
+            public static void Drop()
             {
                 while (MoveDown()) ;
             }
@@ -165,6 +164,7 @@ namespace Quicktris
 
             public static void Init()
             {
+                Console.CursorVisible = false;
                 Console.SetWindowSize(40, 25);
                 Console.BufferWidth = 40;
                 Console.BufferHeight = 25;
@@ -264,8 +264,14 @@ namespace Quicktris
             }
 
             public static void RenderBlock()
-            { 
-                
+            {
+                for (int row = mBlock.mPosY - 1; row < mBlock.mPosY + 4; row++)
+                {
+                    if (row >= 0 && row < 20)
+                    {
+                        RenderRow(row);
+                    }
+                }
             }
         }
 
@@ -426,29 +432,29 @@ namespace Quicktris
                 switch (Keyboard.GetKey())
                 {
                     case Keyboard.Key.Left:
-                        mBlock.MoveLeft();
-                        Renderer.RenderPlayfield();
+                        Block.MoveLeft();
+                        Renderer.RenderBlock();
                         break;
                     case Keyboard.Key.Right:
-                        mBlock.MoveRight();
-                        Renderer.RenderPlayfield();
+                        Block.MoveRight();
+                        Renderer.RenderBlock();
                         break;
                     case Keyboard.Key.Rotate:
-                        mBlock.Rotate();
-                        Renderer.RenderPlayfield();
+                        Block.Rotate();
+                        Renderer.RenderBlock();
                         break;
                     case Keyboard.Key.Drop:
-                        mBlock.Drop();
+                        Block.Drop();
                         Renderer.RenderPlayfield();
                         break;
                     case Keyboard.Key.Down:
-                        mBlock.MoveDown();
-                        Renderer.RenderPlayfield();
+                        Block.MoveDown();
+                        Renderer.RenderBlock();
                         break;
                 }
                 if (Timer())
                 {
-                    if (!mBlock.MoveDown())
+                    if (!Block.MoveDown())
                     {
                         Playfield.Collapse();
                         Playfield.UpdateBkgr();
@@ -456,7 +462,7 @@ namespace Quicktris
                     }
                     else
                     {
-                        Renderer.RenderPlayfield();
+                        Renderer.RenderBlock();
                     }
                     ResetTimer();
                 }
