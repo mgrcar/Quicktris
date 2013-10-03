@@ -13,6 +13,12 @@ namespace Quicktris
             public static int[,] mGridBkgr
                 = new int[20, 10];
 
+            public static void Clear()
+            {
+                Array.Clear(mGrid, 0, mGrid.Length);
+                Array.Clear(mGridBkgr, 0, mGridBkgr.Length);
+            }
+
             public static void UpdateBkgr()
             {
                 // mGrid -> mGridBkgr
@@ -335,7 +341,9 @@ namespace Quicktris
                 for (int i = 0; i < 20; i++)
                 {
                     Console.CursorLeft = 14;
-                    Console.WriteLine("*          *");
+                    Console.Write("*");
+                    Console.CursorLeft = 25;
+                    Console.WriteLine("*");
                 }
                 Console.CursorLeft = 14;
                 Console.WriteLine("************");
@@ -379,8 +387,25 @@ namespace Quicktris
 
             public static void RenderGameOver()
             {
-                // TODO
-                Console.WriteLine("Game over");
+                Console.BackgroundColor = ConsoleColor.Gray;
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.SetCursorPosition(14, 10);
+                Console.WriteLine("            ");
+                Console.CursorLeft = 14;
+                Console.WriteLine(" GAME  OVER ");
+                Console.CursorLeft = 14;
+                Console.WriteLine("            ");
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.SetCursorPosition(1, 16);
+                Console.WriteLine("R: RESTART ");
+            }
+
+            public static void Clear()
+            {
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.Clear();
             }
         }
 
@@ -394,6 +419,7 @@ namespace Quicktris
                 Rotate,
                 Drop,
                 Down,
+                Restart,
                 Other
             }
 
@@ -422,6 +448,8 @@ namespace Quicktris
                         return Key.Drop;
                     case ConsoleKey.DownArrow:
                         return Key.Down;
+                    case ConsoleKey.R:
+                        return Key.Restart;
                 }
                 return Key.Other;
             }
@@ -480,7 +508,20 @@ namespace Quicktris
                         if (!Block.NewBlock())
                         {
                             Renderer.RenderGameOver();
-                            return;
+                            Keyboard.Key key;
+                            while ((key = Keyboard.GetKey()) == Keyboard.Key.None) { Thread.Sleep(1); }
+                            if (key == Keyboard.Key.Restart)
+                            {
+                                Renderer.Init();
+                                Playfield.Clear();
+                                Renderer.RenderPlayfield();
+                                Block.NewBlock();
+                            }
+                            else
+                            {
+                                Renderer.Clear();
+                                return;
+                            }
                         }
                     }
                     ResetTimer();
