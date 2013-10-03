@@ -9,9 +9,9 @@ namespace Quicktris
         static class Playfield
         {
             public static int[,] mGrid
-                = new int[10, 20];
+                = new int[20, 10];
             public static int[,] mGridBkgr
-                = new int[10, 20];
+                = new int[20, 10];
 
             public static void UpdateBkgr()
             {
@@ -19,21 +19,53 @@ namespace Quicktris
                 Array.Copy(mGrid, mGridBkgr, mGrid.Length);
             }
 
-            public static void Update(Block block)
+            public static void UpdateBlock()
             {
                 // mGridBkgr -> mGrid
                 Array.Copy(mGridBkgr, mGrid, mGridBkgr.Length);
                 // block -> mGrid
-                string[] shape = block.mShape[block.mRot];
-                for (int blockY = 0, gridY = block.mPosY; blockY < 4 && gridY < 20; blockY++, gridY++)
+                string[] shape = mBlock.mShape[mBlock.mRot];
+                for (int blockY = 0, gridY = mBlock.mPosY; blockY < 4 && gridY < 20; blockY++, gridY++)
                 {
-                    for (int blockX = 0, gridX = block.mPosX; blockX < 4 && gridX < 10; blockX++, gridX++)
+                    for (int blockX = 0, gridX = mBlock.mPosX; blockX < 4 && gridX < 10; blockX++, gridX++)
                     {
                         if (shape[blockY][blockX] == '1')
                         {
-                            mGrid[gridX, gridY] = block.mType;
+                            mGrid[gridY, gridX] = mBlock.mType;
                         }
                     }
+                }
+            }
+
+            public static void Collapse()
+            {
+                int[,] tmp = new int[10, 20];
+                int yTmp = 19;
+                bool render = false;
+                for (int y = 19; y >= 0; y--)
+                {
+                    bool fullLine = true;
+                    for (int x = 0; x < 10; x++)
+                    {
+                        if (mGrid[y, x] == 0) { fullLine = false; break; }
+                    }
+                    if (fullLine)
+                    {
+                        Array.Clear(mGrid, y * 10, 10);
+                        Renderer.RenderRow(y);
+                        render = true;
+                    }
+                    else
+                    { 
+                        // copy line to tmp
+                        Array.Copy(mGrid, y * 10, tmp, yTmp * 10, 10);
+                        yTmp--;                        
+                    }
+                }
+                if (render)
+                {
+                    Array.Copy(tmp, mGrid, tmp.Length);
+                    Renderer.RenderPlayfield();
                 }
             }
         }
@@ -62,38 +94,43 @@ namespace Quicktris
                 {
                     for (int blockX = 0, gridX = posX; blockX < 4; blockX++, gridX++)
                     {
-                        if (shape[blockY][blockX] == '1' && (gridX < 0 || gridY < 0 || gridX >= 10 || gridY >= 20 || Playfield.mGridBkgr[gridX, gridY] != 0))
+                        if (shape[blockY][blockX] == '1' && (gridX < 0 || gridY < 0 || gridX >= 10 || gridY >= 20 || Playfield.mGridBkgr[gridY, gridX] != 0))
                         {
                             return false;
                         }
                     }
-                }
+                }                
                 return true;
             }
 
             public bool MoveLeft()
             {
-                if (Check(mPosX - 1, mPosY, mRot)) { mPosX--; return true; }
+                if (Check(mPosX - 1, mPosY, mRot)) { mPosX--; Playfield.UpdateBlock(); return true; }
                 return false;
             }
 
             public bool MoveRight()
             {
-                if (Check(mPosX + 1, mPosY, mRot)) { mPosX++; return true; }
+                if (Check(mPosX + 1, mPosY, mRot)) { mPosX++; Playfield.UpdateBlock(); return true; }
                 return false;
             }
 
             public bool MoveDown()
             {
-                if (Check(mPosX, mPosY + 1, mRot)) { mPosY++; return true; }
+                if (Check(mPosX, mPosY + 1, mRot)) { mPosY++; Playfield.UpdateBlock(); return true; }
                 return false;
             }
 
             public bool Rotate()
             {
                 int rot = (mRot + 1) % 4;
-                if (Check(mPosX, mPosY, rot)) { mRot = rot; return true; }
+                if (Check(mPosX, mPosY, rot)) { mRot = rot; Playfield.UpdateBlock(); return true; }
                 return false;
+            }
+
+            public void Drop()
+            {
+                while (MoveDown()) ;
             }
 
             public object Clone()
@@ -203,24 +240,74 @@ namespace Quicktris
 
             public static void RenderPlayfield()
             {
-                Console.CursorTop = 1;                
                 for (int row = 0; row < 20; row++)
                 {
-                    Console.CursorLeft = 15;
-                    for (int col = 0; col < 10; col++)
-                    {
-                        char ch = col % 2 == 0 ? ' ' : '.';
-                        int type = Playfield.mGrid[col, row];
-                        if (type != 0) 
-                        { 
-                            ch = GetChar(219);
-                            Console.ForegroundColor = mConsoleColors[type];
-                        }
-                        Console.Write(ch);
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                    }
-                    Console.WriteLine();
+                    RenderRow(row);
                 }            
+            }
+
+            public static void RenderRow(int row)
+            {                
+                Console.SetCursorPosition(15, row + 1);
+                for (int col = 0; col < 10; col++)
+                {
+                    char ch = col % 2 == 0 ? ' ' : '.';
+                    int type = Playfield.mGrid[row, col];
+                    if (type != 0)
+                    {
+                        ch = GetChar(219);
+                        Console.ForegroundColor = mConsoleColors[type];
+                    }
+                    Console.Write(ch);
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                }
+            }
+
+            public static void RenderBlock()
+            { 
+                
+            }
+        }
+
+        static class Keyboard
+        {
+            public enum Key
+            {
+                None,
+                Left,
+                Right,
+                Rotate,
+                Drop,
+                Down
+            }
+
+            public static Key GetKey()
+            {
+                if (!Console.KeyAvailable) { return Key.None; }
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                while (Console.KeyAvailable) { Console.ReadKey(true); }
+                switch (key.Key)
+                { 
+                    case ConsoleKey.LeftArrow:
+                    case ConsoleKey.D7:
+                    case ConsoleKey.NumPad7:
+                        return Key.Left;
+                    case ConsoleKey.RightArrow:
+                    case ConsoleKey.D9:
+                    case ConsoleKey.NumPad9:
+                        return Key.Right;
+                    case ConsoleKey.UpArrow:
+                    case ConsoleKey.D8:
+                    case ConsoleKey.NumPad8:
+                        return Key.Rotate;
+                    case ConsoleKey.Spacebar:
+                    case ConsoleKey.D4:
+                    case ConsoleKey.NumPad4:
+                        return Key.Drop;
+                    case ConsoleKey.DownArrow:
+                        return Key.Down;
+                }
+                return Key.None;
             }
         }
 
@@ -303,62 +390,77 @@ namespace Quicktris
 
         static Random mRandom
             = new Random();
+        static int mLevel
+            = 0;
+        static int mFreeFall
+            = 0;
+        static int mScore
+            = 0;
+        static Block mBlock
+            = GetRandomBlock();
+        static DateTime mTimer;
+
+        static void ResetTimer()
+        { 
+            mTimer = DateTime.Now;
+        }
 
         static Block GetRandomBlock()
         {
             return (Block)mBlocks[mRandom.Next(7)].Clone();
         }
 
+        static bool Timer()
+        {
+            return (DateTime.Now - mTimer).TotalMilliseconds >= 500;
+        }
+
         static void Main(string[] args)
         {
+            Playfield.UpdateBlock();
             Renderer.Init();
-            Block block = GetRandomBlock();
-            Playfield.Update(block);
             Renderer.RenderPlayfield();
-            DateTime moveTimer = DateTime.Now;
-            bool render = false;
+            ResetTimer();
             while (true)
             {
-                if (Console.KeyAvailable)
+                switch (Keyboard.GetKey())
                 {
-                    ConsoleKeyInfo key = Console.ReadKey(true);
-                    while (Console.KeyAvailable) { Console.ReadKey(true); }
-                    switch (key.Key)
+                    case Keyboard.Key.Left:
+                        mBlock.MoveLeft();
+                        Renderer.RenderPlayfield();
+                        break;
+                    case Keyboard.Key.Right:
+                        mBlock.MoveRight();
+                        Renderer.RenderPlayfield();
+                        break;
+                    case Keyboard.Key.Rotate:
+                        mBlock.Rotate();
+                        Renderer.RenderPlayfield();
+                        break;
+                    case Keyboard.Key.Drop:
+                        mBlock.Drop();
+                        Renderer.RenderPlayfield();
+                        break;
+                    case Keyboard.Key.Down:
+                        mBlock.MoveDown();
+                        Renderer.RenderPlayfield();
+                        break;
+                }
+                if (Timer())
+                {
+                    if (!mBlock.MoveDown())
                     {
-                        case ConsoleKey.LeftArrow:
-                            block.MoveLeft();
-                            break;
-                        case ConsoleKey.RightArrow:
-                            block.MoveRight();
-                            break;
-                        case ConsoleKey.DownArrow:
-                            block.MoveDown();
-                            break;
-                        case ConsoleKey.UpArrow:
-                            block.Rotate();
-                            break;
+                        Playfield.Collapse();
+                        Playfield.UpdateBkgr();
+                        mBlock = GetRandomBlock();
                     }
-                    Playfield.Update(block);
-                    render = true;
+                    else
+                    {
+                        Renderer.RenderPlayfield();
+                    }
+                    ResetTimer();
                 }
                 Thread.Sleep(1);
-                DateTime now = DateTime.Now;
-                if ((now - moveTimer).TotalMilliseconds >= 500)
-                {
-                    moveTimer = now;
-                    if (!block.MoveDown())
-                    {
-                        Playfield.UpdateBkgr();
-                        block = GetRandomBlock();
-                    }
-                    Playfield.Update(block);
-                    render = true;
-                }
-                if (render)
-                {                    
-                    Renderer.RenderPlayfield();
-                    render = false;
-                }
             }
         }
     }
