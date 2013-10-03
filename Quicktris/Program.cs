@@ -401,11 +401,50 @@ namespace Quicktris
                 Console.WriteLine("R: RESTART ");
             }
 
+            public static void RenderPause()
+            {
+                Console.BackgroundColor = ConsoleColor.Gray;
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.SetCursorPosition(14, 10);
+                Console.WriteLine("            ");
+                Console.CursorLeft = 14;
+                Console.WriteLine("   PAUSED   ");
+                Console.CursorLeft = 14;
+                Console.WriteLine("            ");
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.SetCursorPosition(1, 16);
+                Console.WriteLine("R: RESUME  ");            
+            }
+
+            public static void ClearPause()
+            {
+                for (int i = 9; i < 12; i++)
+                {
+                    RenderRow(i);
+                }
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.CursorTop = 10;
+                for (int i = 9; i < 12; i++)
+                {
+                    Console.CursorLeft = 14;
+                    Console.Write("*");
+                    Console.CursorLeft = 25;
+                    Console.WriteLine("*");
+                }
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.SetCursorPosition(1, 16);
+                Console.WriteLine(" SPACE:Drop");            
+            }
+
             public static void Clear()
             {
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.Clear();
+                Console.WriteLine("Your score: 0");
+                Console.WriteLine();
             }
         }
 
@@ -420,6 +459,7 @@ namespace Quicktris
                 Drop,
                 Down,
                 Restart,
+                Pause,
                 Other
             }
 
@@ -450,6 +490,8 @@ namespace Quicktris
                         return Key.Down;
                     case ConsoleKey.R:
                         return Key.Restart;
+                    case ConsoleKey.F1:
+                        return Key.Pause;
                 }
                 return Key.Other;
             }
@@ -497,6 +539,13 @@ namespace Quicktris
                         break;
                     case Keyboard.Key.Down:
                         Block.MoveDown();
+                        break;
+                    case Keyboard.Key.Pause:
+                        TimeSpan ts = DateTime.Now - mTimer; 
+                        Renderer.RenderPause();
+                        while (Keyboard.GetKey() != Keyboard.Key.Restart) { Thread.Sleep(1); }
+                        Renderer.ClearPause();
+                        mTimer = DateTime.Now - ts;
                         break;
                 }
                 if (Timer())
