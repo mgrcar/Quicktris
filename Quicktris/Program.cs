@@ -341,9 +341,7 @@ namespace Quicktris
                 for (int i = 0; i < 20; i++)
                 {
                     Console.CursorLeft = 14;
-                    Console.Write("*");
-                    Console.CursorLeft = 25;
-                    Console.WriteLine("*");
+                    Console.WriteLine("* . . . . .*");
                 }
                 Console.CursorLeft = 14;
                 Console.WriteLine("************");
@@ -419,10 +417,6 @@ namespace Quicktris
 
             public static void ClearPause()
             {
-                for (int i = 9; i < 12; i++)
-                {
-                    RenderRow(i);
-                }
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.CursorTop = 10;
@@ -430,7 +424,7 @@ namespace Quicktris
                 {
                     Console.CursorLeft = 14;
                     Console.Write("*");
-                    Console.CursorLeft = 25;
+                    RenderRow(i);
                     Console.WriteLine("*");
                 }
                 Console.ForegroundColor = ConsoleColor.Gray;
@@ -443,8 +437,15 @@ namespace Quicktris
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.Clear();
-                Console.WriteLine("Your score: 0");
+                Console.WriteLine("Your score: {0}", mScore);
                 Console.WriteLine();
+            }
+
+            public static void RenderScore()
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.SetCursorPosition(12 - mScore.ToString().Length, 4);
+                Console.WriteLine(mScore);
             }
         }
 
@@ -496,13 +497,13 @@ namespace Quicktris
                 return Key.Other;
             }
         }
-       
-        //static int mLevel
-        //    = 0;
-        //static int mFreeFall
-        //    = 0;
-        //static int mScore
-        //    = 0;
+
+        static int mLevel
+            = 0;
+        static int mSteps
+            = 0;
+        static int mScore
+            = 0;
         static DateTime mTimer;
 
         static void ResetTimer()
@@ -537,9 +538,6 @@ namespace Quicktris
                     case Keyboard.Key.Drop:
                         Block.Drop();
                         break;
-                    case Keyboard.Key.Down:
-                        Block.MoveDown();
-                        break;
                     case Keyboard.Key.Pause:
                         TimeSpan ts = DateTime.Now - mTimer; 
                         Renderer.RenderPause();
@@ -552,6 +550,10 @@ namespace Quicktris
                 {
                     if (!Block.MoveDown())
                     {
+                        int points = (21 + 3 * (mLevel + 1)) - mSteps;
+                        mScore += points;
+                        Renderer.RenderScore();
+                        mSteps = 0;
                         Playfield.Collapse();
                         Playfield.UpdateBkgr();
                         if (!Block.NewBlock())
@@ -565,6 +567,8 @@ namespace Quicktris
                                 Playfield.Clear();
                                 Renderer.RenderPlayfield();
                                 Block.NewBlock();
+                                mScore = 0;
+                                mLevel = 0;
                             }
                             else
                             {
@@ -573,6 +577,7 @@ namespace Quicktris
                             }
                         }
                     }
+                    else { mSteps++; }
                     ResetTimer();
                 }
                 Thread.Sleep(1);
