@@ -153,9 +153,12 @@ namespace Quicktris
                     )
                 };
             #endregion
+
             private static Random mRandom
                 = new Random();
             public static Block mBlock 
+                = null;
+            public static Block mNextBlock
                 = null;
 
             public string[][] mShape;
@@ -175,10 +178,13 @@ namespace Quicktris
 
             public static bool NewBlock()
             {
-                mBlock = (Block)mBlocks[mRandom.Next(7)].Clone();
+                if (mNextBlock == null) { mNextBlock = (Block)mBlocks[mRandom.Next(7)].Clone(); }
+                mBlock = mNextBlock;
+                mNextBlock = (Block)mBlocks[mRandom.Next(7)].Clone();
                 bool success = Check(mBlock.mPosX, mBlock.mPosY, mBlock.mRot);
                 Playfield.UpdateBlock();
                 Renderer.RenderBlock();
+                if (mShowNext) { Renderer.RenderNextBlock(); }
                 return success;
             }
 
@@ -206,26 +212,46 @@ namespace Quicktris
 
             public static bool MoveLeft()
             {
-                if (Check(mBlock.mPosX - 1, mBlock.mPosY, mBlock.mRot)) { mBlock.mPosX--; Render(); return true; }
+                if (Check(mBlock.mPosX - 1, mBlock.mPosY, mBlock.mRot)) 
+                { 
+                    mBlock.mPosX--; 
+                    Render(); 
+                    return true; 
+                }
                 return false;
             }
 
             public static bool MoveRight()
             {
-                if (Check(mBlock.mPosX + 1, mBlock.mPosY, mBlock.mRot)) { mBlock.mPosX++; Render(); return true; }
+                if (Check(mBlock.mPosX + 1, mBlock.mPosY, mBlock.mRot)) 
+                { 
+                    mBlock.mPosX++; 
+                    Render(); 
+                    return true; 
+                }
                 return false;
             }
 
             public static bool MoveDown()
             {
-                if (Check(mBlock.mPosX, mBlock.mPosY + 1, mBlock.mRot)) { mBlock.mPosY++; Render(); return true; }
+                if (Check(mBlock.mPosX, mBlock.mPosY + 1, mBlock.mRot)) 
+                { 
+                    mBlock.mPosY++; 
+                    Render(); 
+                    return true; 
+                }
                 return false;
             }
 
             public static bool Rotate()
             {
                 int rot = (mBlock.mRot + 1) % 4;
-                if (Check(mBlock.mPosX, mBlock.mPosY, rot)) { mBlock.mRot = rot; Render(); return true; }
+                if (Check(mBlock.mPosX, mBlock.mPosY, rot)) 
+                {  
+                    mBlock.mRot = rot; 
+                    Render(); 
+                    return true; 
+                }
                 return false;
             }
 
@@ -447,6 +473,22 @@ namespace Quicktris
                 Console.SetCursorPosition(12 - mScore.ToString().Length, 4);
                 Console.WriteLine(mScore);
             }
+
+            public static void RenderNextBlock()
+            {
+                Console.CursorTop = 20;
+                string[] shape = Block.mNextBlock.mShape[0];
+                Console.ForegroundColor = mConsoleColors[Block.mNextBlock.mType];
+                for (int blockY = 0; blockY < 4; blockY++)
+                {
+                    Console.CursorLeft = 3;
+                    for (int blockX = 0; blockX < 4; blockX++)
+                    {
+                        Console.Write(shape[blockY][blockX] == '1' ? GetChar(219) : ' ');
+                    }
+                    Console.WriteLine();
+                }
+            }
         }
 
         static class Keyboard
@@ -461,6 +503,7 @@ namespace Quicktris
                 Down,
                 Restart,
                 Pause,
+                ShowNext,
                 Other
             }
 
@@ -493,6 +536,9 @@ namespace Quicktris
                         return Key.Restart;
                     case ConsoleKey.F1:
                         return Key.Pause;
+                    case ConsoleKey.D1:
+                    case ConsoleKey.NumPad1:
+                        return Key.ShowNext;
                 }
                 return Key.Other;
             }
@@ -504,6 +550,8 @@ namespace Quicktris
             = 0;
         static int mScore
             = 0;
+        static bool mShowNext
+            = false;
         static DateTime mTimer;
 
         static void ResetTimer()
@@ -544,6 +592,10 @@ namespace Quicktris
                         while (Keyboard.GetKey() != Keyboard.Key.Restart) { Thread.Sleep(1); }
                         Renderer.ClearPause();
                         mTimer = DateTime.Now - ts;
+                        break;
+                    case Keyboard.Key.ShowNext:
+                        mShowNext = true;
+                        Renderer.RenderNextBlock();
                         break;
                 }
                 if (Timer())
