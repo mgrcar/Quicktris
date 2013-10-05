@@ -43,11 +43,12 @@ namespace Quicktris
                 }
             }
 
-            public static void Collapse()
+            public static int Collapse()
             {
                 int[,] tmp = new int[20, 10];
                 int yTmp = 19;
                 bool render = false;
+                int fullLines = 0;
                 for (int y = 19; y >= 0; y--)
                 {
                     bool fullLine = true;
@@ -60,6 +61,7 @@ namespace Quicktris
                         Array.Clear(mGrid, y * 10, 10);
                         Renderer.RenderRow(y);
                         render = true;
+                        fullLines++;
                     }
                     else
                     { 
@@ -72,6 +74,7 @@ namespace Quicktris
                     Array.Copy(tmp, mGrid, tmp.Length);
                     Renderer.RenderPlayfield();
                 }
+                return fullLines;
             }
         }
 
@@ -489,6 +492,30 @@ namespace Quicktris
                     Console.WriteLine();
                 }
             }
+
+            public static void ClearNextBlock()
+            {
+                Console.CursorTop = 20;
+                for (int i = 0; i < 4; i++)
+                {
+                    Console.CursorLeft = 3;
+                    Console.WriteLine("    ");
+                }
+            }
+
+            public static void RenderFullLines()
+            {
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.SetCursorPosition(13 - mFullLines.ToString().Length, 2);
+                Console.Write(mFullLines);
+            }
+
+            public static void RenderLevel()
+            {
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.SetCursorPosition(13 - mLevel.ToString().Length, 1);
+                Console.Write(mLevel);
+            }
         }
 
         static class Keyboard
@@ -550,8 +577,12 @@ namespace Quicktris
             = 0;
         static int mScore
             = 0;
+        static int mFullLines
+            = 0;
         static bool mShowNext
             = false;
+        static int mDelay
+            = 500;
         static DateTime mTimer;
 
         static void ResetTimer()
@@ -561,7 +592,15 @@ namespace Quicktris
 
         static bool Timer()
         {
-            return (DateTime.Now - mTimer).TotalMilliseconds >= 500;
+            return (DateTime.Now - mTimer).TotalMilliseconds >= mDelay;
+        }
+
+        static void ResetStats()
+        {
+            mScore = 0;
+            mLevel = 0;
+            mFullLines = 0;
+            mDelay = 500;
         }
 
         static void Main(string[] args)
@@ -594,8 +633,8 @@ namespace Quicktris
                         mTimer = DateTime.Now - ts;
                         break;
                     case Keyboard.Key.ShowNext:
-                        mShowNext = true;
-                        Renderer.RenderNextBlock();
+                        mShowNext = !mShowNext;
+                        if (mShowNext) { Renderer.RenderNextBlock(); } else { Renderer.ClearNextBlock(); }
                         break;
                 }
                 if (Timer())
@@ -606,7 +645,11 @@ namespace Quicktris
                         mScore += points;
                         Renderer.RenderScore();
                         mSteps = 0;
-                        Playfield.Collapse();
+                        mFullLines += Playfield.Collapse();
+                        Renderer.RenderFullLines();
+                        mLevel = (mFullLines - 1) / 10;
+                        mDelay = (10 - mLevel) * 50;
+                        Renderer.RenderLevel();
                         Playfield.UpdateBkgr();
                         if (!Block.NewBlock())
                         {
@@ -619,8 +662,7 @@ namespace Quicktris
                                 Playfield.Clear();
                                 Renderer.RenderPlayfield();
                                 Block.NewBlock();
-                                mScore = 0;
-                                mLevel = 0;
+                                ResetStats();
                             }
                             else
                             {
