@@ -583,6 +583,7 @@ namespace Quicktris
             = false;
         static int mDelay
             = 500;
+
         static DateTime mTimer;
 
         static void ResetTimer()
@@ -643,9 +644,11 @@ namespace Quicktris
                     {
                         int points = (21 + 3 * (mLevel + 1)) - mSteps;
                         mScore += points;
+                        if (mScore > 99999) { mScore = 99999; } // to prevent overflow
                         Renderer.RenderScore();
                         mSteps = 0;
                         mFullLines += Playfield.Collapse();
+                        if (mFullLines > 99) { mFullLines = 99; } // to prevent overflow
                         Renderer.RenderFullLines();
                         mLevel = (mFullLines - 1) / 10;
                         mDelay = (10 - mLevel) * 50;
