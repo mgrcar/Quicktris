@@ -183,6 +183,7 @@ namespace Quicktris
             {
                 if (mNextBlock == null) { mNextBlock = (Block)mBlocks[mRandom.Next(7)].Clone(); }
                 mBlock = mNextBlock;
+                mStats[mBlock.mType - 1]++;
                 mNextBlock = (Block)mBlocks[mRandom.Next(7)].Clone();
                 bool success = Check(mBlock.mPosX, mBlock.mPosY, mBlock.mRot);
                 Playfield.UpdateBlock();
@@ -461,7 +462,7 @@ namespace Quicktris
                 Console.WriteLine(" SPACE:Drop");            
             }
 
-            public static void Clear()
+            public static void RenderGoodbye()
             {
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.BackgroundColor = ConsoleColor.Black;
@@ -531,6 +532,7 @@ namespace Quicktris
                 Restart,
                 Pause,
                 ShowNext,
+                SpeedUp,
                 Other
             }
 
@@ -566,6 +568,9 @@ namespace Quicktris
                     case ConsoleKey.D1:
                     case ConsoleKey.NumPad1:
                         return Key.ShowNext;
+                    case ConsoleKey.D6:
+                    case ConsoleKey.NumPad6:
+                        return Key.SpeedUp;
                 }
                 return Key.Other;
             }
@@ -581,8 +586,8 @@ namespace Quicktris
             = 0;
         static bool mShowNext
             = false;
-        static int mDelay
-            = 500;
+        static int[] mStats
+            = new int[7];
 
         static DateTime mTimer;
 
@@ -593,7 +598,7 @@ namespace Quicktris
 
         static bool Timer()
         {
-            return (DateTime.Now - mTimer).TotalMilliseconds >= mDelay;
+            return (DateTime.Now - mTimer).TotalMilliseconds >= (10 - mLevel) * 50;
         }
 
         static void ResetStats()
@@ -601,7 +606,7 @@ namespace Quicktris
             mScore = 0;
             mLevel = 0;
             mFullLines = 0;
-            mDelay = 500;
+            mStats = new int[7];
         }
 
         static void Main(string[] args)
@@ -637,6 +642,11 @@ namespace Quicktris
                         mShowNext = !mShowNext;
                         if (mShowNext) { Renderer.RenderNextBlock(); } else { Renderer.ClearNextBlock(); }
                         break;
+                    case Keyboard.Key.SpeedUp:
+                        mLevel++;
+                        if (mLevel > 9) { mLevel = 9; }
+                        Renderer.RenderLevel();
+                        break;
                 }
                 if (Timer())
                 {
@@ -650,8 +660,7 @@ namespace Quicktris
                         mFullLines += Playfield.Collapse();
                         if (mFullLines > 99) { mFullLines = 99; } // to prevent overflow
                         Renderer.RenderFullLines();
-                        mLevel = (mFullLines - 1) / 10;
-                        mDelay = (10 - mLevel) * 50;
+                        mLevel = Math.Max(mLevel, (mFullLines - 1) / 10);
                         Renderer.RenderLevel();
                         Playfield.UpdateBkgr();
                         if (!Block.NewBlock())
@@ -669,7 +678,7 @@ namespace Quicktris
                             }
                             else
                             {
-                                Renderer.Clear();
+                                Renderer.RenderGoodbye();
                                 return;
                             }
                         }
