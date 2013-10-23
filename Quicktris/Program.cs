@@ -29,7 +29,7 @@ namespace Quicktris
             {
                 // mGridBkgr -> mGrid
                 Array.Copy(mGridBkgr, mGrid, mGridBkgr.Length);
-                // block -> mGrid
+                // mBlock -> mGrid
                 string[] shape = Block.mBlock.mShape[Block.mBlock.mRot];
                 for (int blockY = 0, gridY = Block.mBlock.mPosY; blockY < 4 && gridY < 20; blockY++, gridY++)
                 {
@@ -184,6 +184,8 @@ namespace Quicktris
                 if (mNextBlock == null) { mNextBlock = (Block)mBlocks[mRandom.Next(7)].Clone(); }
                 mBlock = mNextBlock;
                 mStats[mBlock.mType - 1]++;
+                if (mStats[mBlock.mType - 1] > 1428) { mStats[mBlock.mType - 1] = 1428; } // prevent overflow (also of the overall sum)
+                Renderer.RenderStats();
                 mNextBlock = (Block)mBlocks[mRandom.Next(7)].Clone();
                 bool success = Check(mBlock.mPosX, mBlock.mPosY, mBlock.mRot);
                 Playfield.UpdateBlock();
@@ -517,6 +519,22 @@ namespace Quicktris
                 Console.SetCursorPosition(13 - mLevel.ToString().Length, 1);
                 Console.Write(mLevel);
             }
+
+            public static void RenderStats()
+            {
+                int all = 0;
+                for (int i = 0; i < 7; i++)
+                {
+                    Console.CursorTop = i * 2 + 5;
+                    Console.CursorLeft = 40 - mStats[i].ToString().Length;
+                    Console.ForegroundColor = mConsoleColors[i + 1];
+                    Console.Write(mStats[i]);
+                    all += mStats[i];
+                }
+                Console.SetCursorPosition(40 - all.ToString().Length, 20);
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(all);
+            }
         }
 
         static class Keyboard
@@ -654,11 +672,11 @@ namespace Quicktris
                     {
                         int points = (21 + 3 * (mLevel + 1)) - mSteps;
                         mScore += points;
-                        if (mScore > 99999) { mScore = 99999; } // to prevent overflow
+                        if (mScore > 99999) { mScore = 99999; } // prevent overflow
                         Renderer.RenderScore();
                         mSteps = 0;
                         mFullLines += Playfield.Collapse();
-                        if (mFullLines > 99) { mFullLines = 99; } // to prevent overflow
+                        if (mFullLines > 99) { mFullLines = 99; } // prevent overflow
                         Renderer.RenderFullLines();
                         mLevel = Math.Max(mLevel, (mFullLines - 1) / 10);
                         Renderer.RenderLevel();
