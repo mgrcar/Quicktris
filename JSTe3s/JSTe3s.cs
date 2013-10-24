@@ -1,15 +1,15 @@
 using System;
-using System.Threading;
+//using System.Threading;
 
-namespace Quicktris
+namespace JSTe3s
 {
-    static class Playfield
+    public static class Playfield
     {
         public static int[][] mGrid
             = new int[20][];
         public static int[][] mGridBkgr
             = new int[20][];
-
+        
         static Playfield()
         {
             for (int i = 0; i < 20; i++)
@@ -19,42 +19,22 @@ namespace Quicktris
             }
         }
 
-        private static void Array_Clear(int[][] array)
-        {
-            // will do this in JS
-        }
-
-        private static void Array_Copy(int[][] src, int[][] dest)
-        {
-            // will do this in JS
-        }
-
-        private static void Array_Clear2(int[][] array, int row)
-        {
-            // will do this in JS
-        }
-
-        private static void Array_Copy4(int[][] src, int srcRow, int[][] dest, int destRow)
-        {
-            // will do this in JS
-        }
-
         public static void Clear()
         {
-            Array_Clear(mGrid);
-            Array_Clear(mGridBkgr);
+            Native.Utils_ArrayClear(mGrid);
+            Native.Utils_ArrayClear(mGridBkgr);
         }
 
         public static void UpdateBkgr()
         {
             // mGrid -> mGridBkgr
-            Array_Copy(mGrid, mGridBkgr);
+            Native.Utils_ArrayCopy(mGrid, mGridBkgr);
         }
 
         public static void UpdateBlock()
         {
             // mGridBkgr -> mGrid
-            Array_Copy(mGridBkgr, mGrid);
+            Native.Utils_ArrayCopy(mGridBkgr, mGrid);
             // mBlock -> mGrid
             string[] shape = Block.mBlock.mShape[Block.mBlock.mRot];
             for (int blockY = 0, gridY = Block.mBlock.mPosY; blockY < 4 && gridY < 20; blockY++, gridY++)
@@ -85,103 +65,103 @@ namespace Quicktris
                 }
                 if (fullLine)
                 {
-                    Array_Clear2(mGrid, y);
-                    Renderer.RenderRow(y);
+                    Native.Utils_ArrayClear2(mGrid, y);
+                    Native.Renderer_RenderRow(y);
                     render = true;
                     fullLines++;
                 }
                 else
                 {
-                    Array_Copy4(mGrid, y, tmp, yTmp);
+                    Native.Utils_ArrayCopy4(mGrid, y, tmp, yTmp);
                     yTmp--;
                 }
             }
             if (render)
             {
-                Array_Copy(tmp, mGrid);
-                Renderer.RenderPlayfield();
+                Native.Utils_ArrayCopy(tmp, mGrid);
+                Native.Renderer_RenderPlayfield();
             }
             return fullLines;
         }
     }
 
-    class Block
+    public class Block
     {
         #region Blocks
-        private static Block[] mBlocks
+        public static Block[] mBlocks
             = new Block[] 
-                { 
-                    new Block
-                    (
-                        new string[][] 
-                        { 
-                            "0000,0111,0100,0000".Split(','),
-                            "0010,0010,0011,0000".Split(','),
-                            "0001,0111,0000,0000".Split(','),
-                            "0110,0010,0010,0000".Split(',')
-                        }, 1
-                    ),
-                    new Block
-                    (
-                        new string[][] 
-                        { 
-                            "0000,1111,0000,0000".Split(','),
-                            "0010,0010,0010,0010".Split(','),
-                            "0000,1111,0000,0000".Split(','),
-                            "0010,0010,0010,0010".Split(',')
-                        }, 2
-                    ),
-                    new Block
-                    (
-                        new string[][] 
-                        { 
-                            "0000,0111,0010,0000".Split(','),
-                            "0010,0011,0010,0000".Split(','),
-                            "0010,0111,0000,0000".Split(','),
-                            "0010,0110,0010,0000".Split(',')
-                        }, 3
-                    ),
-                    new Block
-                    (
-                        new string[][] 
-                        { 
-                            "0000,0011,0110,0000".Split(','),
-                            "0010,0011,0001,0000".Split(','),
-                            "0000,0011,0110,0000".Split(','),
-                            "0010,0011,0001,0000".Split(',')
-                        }, 4
-                    ),
-                    new Block
-                    (
-                        new string[][] 
-                        { 
-                            "0000,0110,0011,0000".Split(','),
-                            "0001,0011,0010,0000".Split(','),
-                            "0000,0110,0011,0000".Split(','),
-                            "0001,0011,0010,0000".Split(',')
-                        }, 5
-                    ),
-                    new Block
-                    (
-                        new string[][] 
-                        { 
-                            "0000,0110,0110,0000".Split(','),
-                            "0000,0110,0110,0000".Split(','),
-                            "0000,0110,0110,0000".Split(','),
-                            "0000,0110,0110,0000".Split(',')
-                        }, 6
-                    ),
-                    new Block
-                    (
-                        new string[][] 
-                        { 
-                            "0000,0111,0001,0000".Split(','),
-                            "0011,0010,0010,0000".Split(','),
-                            "0100,0111,0000,0000".Split(','),
-                            "0010,0010,0110,0000".Split(',')
-                        }, 7
-                    )
-                };
+            { 
+                new Block
+                (
+                    new string[][] 
+                    { 
+                        "0000,0111,0100,0000".Split(','),
+                        "0010,0010,0011,0000".Split(','),
+                        "0001,0111,0000,0000".Split(','),
+                        "0110,0010,0010,0000".Split(',')
+                    }, 1
+                ),
+                new Block
+                (
+                    new string[][] 
+                    { 
+                        "0000,1111,0000,0000".Split(','),
+                        "0010,0010,0010,0010".Split(','),
+                        "0000,1111,0000,0000".Split(','),
+                        "0010,0010,0010,0010".Split(',')
+                    }, 2
+                ),
+                new Block
+                (
+                    new string[][] 
+                    { 
+                        "0000,0111,0010,0000".Split(','),
+                        "0010,0011,0010,0000".Split(','),
+                        "0010,0111,0000,0000".Split(','),
+                        "0010,0110,0010,0000".Split(',')
+                    }, 3
+                ),
+                new Block
+                (
+                    new string[][] 
+                    { 
+                        "0000,0011,0110,0000".Split(','),
+                        "0010,0011,0001,0000".Split(','),
+                        "0000,0011,0110,0000".Split(','),
+                        "0010,0011,0001,0000".Split(',')
+                    }, 4
+                ),
+                new Block
+                (
+                    new string[][] 
+                    { 
+                        "0000,0110,0011,0000".Split(','),
+                        "0001,0011,0010,0000".Split(','),
+                        "0000,0110,0011,0000".Split(','),
+                        "0001,0011,0010,0000".Split(',')
+                    }, 5
+                ),
+                new Block
+                (
+                    new string[][] 
+                    { 
+                        "0000,0110,0110,0000".Split(','),
+                        "0000,0110,0110,0000".Split(','),
+                        "0000,0110,0110,0000".Split(','),
+                        "0000,0110,0110,0000".Split(',')
+                    }, 6
+                ),
+                new Block
+                (
+                    new string[][] 
+                    { 
+                        "0000,0111,0001,0000".Split(','),
+                        "0011,0010,0010,0000".Split(','),
+                        "0100,0111,0000,0000".Split(','),
+                        "0010,0010,0110,0000".Split(',')
+                    }, 7
+                )
+            };
         #endregion
 
         public static Block mBlock
@@ -210,16 +190,16 @@ namespace Quicktris
             mBlock = mNextBlock;
             Program.mStats[mBlock.mType - 1]++;
             if (Program.mStats[mBlock.mType - 1] > 1428) { Program.mStats[mBlock.mType - 1] = 1428; } // prevent overflow (also of the overall sum)
-            Renderer.RenderStats();
+            Native.Renderer_RenderStats();
             mNextBlock = (Block)mBlocks[Math.Round(Math.Random() * 6)].Clone();
             bool success = Check(mBlock.mPosX, mBlock.mPosY, mBlock.mRot);
             Playfield.UpdateBlock();
-            Renderer.RenderBlock();
-            if (Program.mShowNext) { Renderer.RenderNextBlock(); }
+            Native.Renderer_RenderBlock();
+            if (Program.mShowNext) { Native.Renderer_RenderNextBlock(); }
             return success;
         }
 
-        private static bool Check(int posX, int posY, int rot)
+        public static bool Check(int posX, int posY, int rot)
         {
             string[] shape = mBlock.mShape[rot];
             for (int blockY = 0, gridY = posY; blockY < 4; blockY++, gridY++)
@@ -235,10 +215,10 @@ namespace Quicktris
             return true;
         }
 
-        private static void Render()
+        public static void Render()
         {
             Playfield.UpdateBlock();
-            Renderer.RenderBlock();
+            Native.Renderer_RenderBlock();
         }
 
         public static bool MoveLeft()
@@ -293,7 +273,7 @@ namespace Quicktris
             if (success)
             {
                 Playfield.UpdateBlock();
-                Renderer.RenderPlayfield();
+                Native.Renderer_RenderPlayfield();
             }
             return success;
         }
@@ -308,113 +288,7 @@ namespace Quicktris
         }
     }
 
-    static class Renderer
-    {
-        public static void Init()
-        {
-            // ...
-        }
-
-        public static void RenderPlayfield()
-        {
-            for (int row = 0; row < 20; row++)
-            {
-                RenderRow(row);
-            }
-        }
-
-        public static void RenderRow(int row)
-        {
-            // ...
-        }
-
-        public static void RenderBlock()
-        {
-            for (int row = Block.mBlock.mPosY - 1; row < Block.mBlock.mPosY + 4; row++)
-            {
-                if (row >= 0 && row < 20)
-                {
-                    RenderRow(row);
-                }
-            }
-        }
-
-        public static void RenderGameOver()
-        {
-            // ...
-        }
-
-        public static void RenderPause()
-        {
-            // ...
-        }
-
-        public static void ClearPause()
-        {
-            // ...
-        }
-
-        public static void RenderGoodbye()
-        {
-            // ...
-        }
-
-        public static void RenderScore()
-        {
-            // ...
-        }
-
-        public static void RenderNextBlock()
-        {
-            // ...
-        }
-
-        public static void ClearNextBlock()
-        {
-            // ...
-        }
-
-        public static void RenderFullLines()
-        {
-            // ...
-        }
-
-        public static void RenderLevel()
-        {
-            // ...
-        }
-
-        public static void RenderStats()
-        {
-            // ...
-        }
-    }
-
-    public enum Key
-    {
-        None = 1,
-        Left = 2,
-        Right = 3,
-        Rotate = 4,
-        Drop = 5,
-        Down = 6,
-        Restart = 7,
-        Pause = 8,
-        ShowNext = 9,
-        SpeedUp = 10,
-        Other = 11
-    }
-
-    public static class Keyboard
-    {
-        public static Key GetKey()
-        {
-            // ...
-            return Key.Other;
-        }
-    }
-
-    class Program
+    public class Program
     {
         public static int mLevel
             = 0;
@@ -449,50 +323,44 @@ namespace Quicktris
             mStats = new int[7];
         }
 
-        public static Date Subtract(Date date, int ms)
-        {
-            // will do this in JS
-            return null;
-        }
-
         // TODO: this needs to be rewritten with events in JavaScript
         public static void Main(string[] args)
         {
-            Renderer.Init();
-            Renderer.RenderPlayfield();
+            Native.Renderer_Init();
+            Native.Renderer_RenderPlayfield();
             Block.NewBlock();
             ResetTimer();
             while (true)
             {
-                switch (Keyboard.GetKey())
+                switch (Native.Keyboard_GetKey())
                 {
-                    case Key.Left:
+                    case Key.Key_Left:
                         Block.MoveLeft();
                         break;
-                    case Key.Right:
+                    case Key.Key_Right:
                         Block.MoveRight();
                         break;
-                    case Key.Rotate:
+                    case Key.Key_Rotate:
                         Block.Rotate();
                         break;
-                    case Key.Drop:
+                    case Key.Key_Drop:
                         Block.Drop();
                         break;
-                    case Key.Pause:
+                    case Key.Key_Pause:
                         int ts = Date.Now - mTimer;
-                        Renderer.RenderPause();
-                        while (Keyboard.GetKey() != Key.Restart) { /*Thread.Sleep(1);*/ }
-                        Renderer.ClearPause();
-                        mTimer = Subtract(Date.Now, ts);
+                        Native.Renderer_RenderPause();
+                        while (Native.Keyboard_GetKey() != Key.Key_Restart) { /*Thread.Sleep(1);*/ }
+                        Native.Renderer_ClearPause();
+                        mTimer = Native.Utils_Subtract(Date.Now, ts);
                         break;
-                    case Key.ShowNext:
+                    case Key.Key_ShowNext:
                         mShowNext = !mShowNext;
-                        if (mShowNext) { Renderer.RenderNextBlock(); } else { Renderer.ClearNextBlock(); }
+                        if (mShowNext) { Native.Renderer_RenderNextBlock(); } else { Native.Renderer_ClearNextBlock(); }
                         break;
-                    case Key.SpeedUp:
+                    case Key.Key_SpeedUp:
                         mLevel++;
                         if (mLevel > 9) { mLevel = 9; }
-                        Renderer.RenderLevel();
+                        Native.Renderer_RenderLevel();
                         break;
                 }
                 if (Timer())
@@ -502,30 +370,30 @@ namespace Quicktris
                         int points = (21 + 3 * (mLevel + 1)) - mSteps;
                         mScore += points;
                         if (mScore > 99999) { mScore = 99999; } // prevent overflow
-                        Renderer.RenderScore();
+                        Native.Renderer_RenderScore();
                         mSteps = 0;
                         mFullLines += Playfield.Collapse();
                         if (mFullLines > 99) { mFullLines = 99; } // prevent overflow
-                        Renderer.RenderFullLines();
+                        Native.Renderer_RenderFullLines();
                         mLevel = Math.Max(mLevel, Math.Floor((mFullLines - 1) / 10));
-                        Renderer.RenderLevel();
+                        Native.Renderer_RenderLevel();
                         Playfield.UpdateBkgr();
                         if (!Block.NewBlock())
                         {
-                            Renderer.RenderGameOver();
+                            Native.Renderer_RenderGameOver();
                             Key key;
-                            while ((key = Keyboard.GetKey()) == Key.None) { /*Thread.Sleep(1);*/ }
-                            if (key == Key.Restart)
+                            while ((key = Native.Keyboard_GetKey()) == Key.Key_None) { /*Thread.Sleep(1);*/ }
+                            if (key == Key.Key_Restart)
                             {
-                                Renderer.Init();
+                                Native.Renderer_Init();
                                 Playfield.Clear();
-                                Renderer.RenderPlayfield();
+                                Native.Renderer_RenderPlayfield();
                                 Block.NewBlock();
                                 ResetStats();
                             }
                             else
                             {
-                                Renderer.RenderGoodbye();
+                                Native.Renderer_RenderGoodbye();
                                 return;
                             }
                         }
