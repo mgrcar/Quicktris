@@ -63,6 +63,9 @@
     <Content Include="img\3.png" />
     <Content Include="img\8.png" />
     <Content Include="img\9.png" />
+    <Content Include="js\JSTe3s.js" />
+    <Content Include="js\mscorlib.js" />
+    <Content Include="js\native.js" />
     <Content Include="Web3s.html" />
     <Content Include="js\game.js" />
     <Content Include="js\jquery1.9.1.js" />

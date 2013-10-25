@@ -627,13 +627,21 @@ namespace Quicktris
             mStats = new int[7];
         }
 
-        static void Main(string[] args)
+        enum State
+        { 
+            Play,
+            Pause,
+            GameOver
+        }
+
+        static State mState
+            = State.Play;
+        static TimeSpan mTimeLeft
+            = TimeSpan.Zero;
+
+        static void Play()
         {
-            Renderer.Init();
-            Renderer.RenderPlayfield();
-            Block.NewBlock();
-            ResetTimer();
-            while (true)
+            if (mState == State.Play)
             {
                 switch (Keyboard.GetKey())
                 {
@@ -650,12 +658,10 @@ namespace Quicktris
                         Block.Drop();
                         break;
                     case Keyboard.Key.Pause:
-                        TimeSpan ts = DateTime.Now - mTimer; 
+                        mTimeLeft = DateTime.Now - mTimer;
                         Renderer.RenderPause();
-                        while (Keyboard.GetKey() != Keyboard.Key.Restart) { Thread.Sleep(1); }
-                        Renderer.ClearPause();
-                        mTimer = DateTime.Now - ts;
-                        break;
+                        mState = State.Pause;
+                        return;
                     case Keyboard.Key.ShowNext:
                         mShowNext = !mShowNext;
                         if (mShowNext) { Renderer.RenderNextBlock(); } else { Renderer.ClearNextBlock(); }
@@ -684,26 +690,60 @@ namespace Quicktris
                         if (!Block.NewBlock())
                         {
                             Renderer.RenderGameOver();
-                            Keyboard.Key key;
-                            while ((key = Keyboard.GetKey()) == Keyboard.Key.None) { Thread.Sleep(1); }
-                            if (key == Keyboard.Key.Restart)
-                            {
-                                Renderer.Init();
-                                Playfield.Clear();
-                                Renderer.RenderPlayfield();
-                                Block.NewBlock();
-                                ResetStats();
-                            }
-                            else
-                            {
-                                Renderer.RenderGoodbye();
-                                return;
-                            }
+                            mState = State.GameOver;
+                            return;
                         }
                     }
                     else { mSteps++; }
                     ResetTimer();
                 }
+            }
+            else if (mState == State.Pause)
+            {
+                if (Keyboard.GetKey() != Keyboard.Key.None)
+                {
+                    Renderer.ClearPause();
+                    mTimer = DateTime.Now - mTimeLeft;
+                    mState = State.Play;
+                }
+            }
+            else if (mState == State.GameOver)
+            {
+                Keyboard.Key key = Keyboard.GetKey();
+                if (key != Keyboard.Key.None)
+                {
+                    if (key == Keyboard.Key.Restart)
+                    {
+                        ResetStats();
+                        Renderer.Init();
+                        Playfield.Clear();
+                        Renderer.RenderPlayfield();
+                        Block.NewBlock();
+                        mState = State.Play;
+                    }
+                    else
+                    {
+                        Renderer.RenderGoodbye();
+                        Environment.Exit(0);
+                    }
+                }
+            }
+        }
+
+        static void Init()
+        {
+            Renderer.Init();
+            Renderer.RenderPlayfield();
+            Block.NewBlock();
+            ResetTimer();
+        }
+
+        static void Main(string[] args)
+        {
+            Init();
+            while (true)
+            {
+                Play();
                 Thread.Sleep(1);
             }
         }

@@ -1,5 +1,4 @@
 using System;
-//using System.Threading;
 
 namespace JSTe3s
 {
@@ -19,22 +18,48 @@ namespace JSTe3s
             }
         }
 
+        public static void ArrayClear(int[][] array)
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                array[i] = new int[10];
+            }
+        }
+
+        public static void ArrayClear2(int[][] array, int y)
+        {
+            array[y] = new int[10];
+        }
+
+        public static void ArrayCopy(int[][] src, int[][] dst)
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                dst[i] = (int[])src[i].Clone();
+            }
+        }
+
+        public static void ArrayCopy4(int[][] src, int srcY, int[][] dst, int dstY)
+        {
+            dst[dstY] = (int[])src[srcY].Clone();
+        }
+
         public static void Clear()
         {
-            Native.Utils_ArrayClear(mGrid);
-            Native.Utils_ArrayClear(mGridBkgr);
+            ArrayClear(mGrid);
+            ArrayClear(mGridBkgr);
         }
 
         public static void UpdateBkgr()
         {
             // mGrid -> mGridBkgr
-            Native.Utils_ArrayCopy(mGrid, mGridBkgr);
+            ArrayCopy(mGrid, mGridBkgr);
         }
 
         public static void UpdateBlock()
         {
             // mGridBkgr -> mGrid
-            Native.Utils_ArrayCopy(mGridBkgr, mGrid);
+            ArrayCopy(mGridBkgr, mGrid);
             // mBlock -> mGrid
             string[] shape = Block.mBlock.mShape[Block.mBlock.mRot];
             for (int blockY = 0, gridY = Block.mBlock.mPosY; blockY < 4 && gridY < 20; blockY++, gridY++)
@@ -65,20 +90,20 @@ namespace JSTe3s
                 }
                 if (fullLine)
                 {
-                    Native.Utils_ArrayClear2(mGrid, y);
+                    ArrayClear2(mGrid, y);
                     Native.Renderer_RenderRow(y);
                     render = true;
                     fullLines++;
                 }
                 else
                 {
-                    Native.Utils_ArrayCopy4(mGrid, y, tmp, yTmp);
+                    ArrayCopy4(mGrid, y, tmp, yTmp);
                     yTmp--;
                 }
             }
             if (render)
             {
-                Native.Utils_ArrayCopy(tmp, mGrid);
+                ArrayCopy(tmp, mGrid);
                 Native.Renderer_RenderPlayfield();
             }
             return fullLines;
@@ -288,6 +313,28 @@ namespace JSTe3s
         }
     }
 
+    public enum Key
+    {
+        None = 0,
+        Left = 1,
+        Right = 2,
+        Rotate = 3,
+        Drop = 4,
+        Down = 5,
+        Restart = 6,
+        Pause = 7,
+        ShowNext = 8,
+        SpeedUp = 9,
+        Other = 10
+    }
+
+    public enum State
+    {
+        Play = 0,
+        Pause = 1,
+        GameOver = 2
+    }
+
     public class Program
     {
         public static int mLevel
@@ -323,41 +370,39 @@ namespace JSTe3s
             mStats = new int[7];
         }
 
-        // TODO: this needs to be rewritten with events in JavaScript
-        public static void Main(string[] args)
+        public static State mState
+            = State.Play;
+        public static int mTimeLeft
+            = 0;
+
+        public static void Play()
         {
-            Native.Renderer_Init();
-            Native.Renderer_RenderPlayfield();
-            Block.NewBlock();
-            ResetTimer();
-            while (true)
+            if (mState == State.Play)
             {
                 switch (Native.Keyboard_GetKey())
                 {
-                    case Key.Key_Left:
+                    case Key.Left:
                         Block.MoveLeft();
                         break;
-                    case Key.Key_Right:
+                    case Key.Right:
                         Block.MoveRight();
                         break;
-                    case Key.Key_Rotate:
+                    case Key.Rotate:
                         Block.Rotate();
                         break;
-                    case Key.Key_Drop:
+                    case Key.Drop:
                         Block.Drop();
                         break;
-                    case Key.Key_Pause:
-                        int ts = Date.Now - mTimer;
+                    case Key.Pause:
+                        mTimeLeft = Date.Now - mTimer;
                         Native.Renderer_RenderPause();
-                        while (Native.Keyboard_GetKey() != Key.Key_Restart) { /*Thread.Sleep(1);*/ }
-                        Native.Renderer_ClearPause();
-                        mTimer = Native.Utils_Subtract(Date.Now, ts);
-                        break;
-                    case Key.Key_ShowNext:
+                        mState = State.Pause;
+                        return;
+                    case Key.ShowNext:
                         mShowNext = !mShowNext;
                         if (mShowNext) { Native.Renderer_RenderNextBlock(); } else { Native.Renderer_ClearNextBlock(); }
                         break;
-                    case Key.Key_SpeedUp:
+                    case Key.SpeedUp:
                         mLevel++;
                         if (mLevel > 9) { mLevel = 9; }
                         Native.Renderer_RenderLevel();
@@ -381,28 +426,57 @@ namespace JSTe3s
                         if (!Block.NewBlock())
                         {
                             Native.Renderer_RenderGameOver();
-                            Key key;
-                            while ((key = Native.Keyboard_GetKey()) == Key.Key_None) { /*Thread.Sleep(1);*/ }
-                            if (key == Key.Key_Restart)
-                            {
-                                Native.Renderer_Init();
-                                Playfield.Clear();
-                                Native.Renderer_RenderPlayfield();
-                                Block.NewBlock();
-                                ResetStats();
-                            }
-                            else
-                            {
-                                Native.Renderer_RenderGoodbye();
-                                return;
-                            }
+                            mState = State.GameOver;
+                            return;
                         }
                     }
                     else { mSteps++; }
                     ResetTimer();
                 }
-                /*Thread.Sleep(1);*/
+            }
+            else if (mState == State.Pause)
+            {
+                if (Native.Keyboard_GetKey() != Key.None)
+                {
+                    Native.Renderer_ClearPause();
+                    mTimer = new Date(Date.Now.GetTime() - mTimeLeft);
+                    mState = State.Play;
+                }
+            }
+            else if (mState == State.GameOver)
+            {
+                Key key = Native.Keyboard_GetKey();
+                if (key != Key.None)
+                {
+                    if (key == Key.Restart)
+                    {
+                        ResetStats();
+                        Native.Renderer_Init();
+                        Playfield.Clear();
+                        Native.Renderer_RenderPlayfield();
+                        Block.NewBlock();
+                        mState = State.Play;
+                    }
+                }
             }
         }
+
+        public static void Init()
+        {
+            Native.Renderer_Init();
+            Native.Renderer_RenderPlayfield();
+            Block.NewBlock();
+            ResetTimer();        
+        }
+
+        //static void Main(string[] args)
+        //{
+        //    Init();
+        //    while (true)
+        //    {
+        //        Play();
+        //        Thread.Sleep(1);
+        //    }
+        //}
     }
 }

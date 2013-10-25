@@ -49,7 +49,7 @@ $(function () { // wait for document to load
     $.when.apply(null, loaders).done(function () { // wait for all images to load
         ctx = $("#screen")[0].getContext("2d");
         ctx.drawImage(images["BG"], 0, 0);
-        ctx.drawImage(getTile("B1"), x(5), x(5));
+        //ctx.drawImage(getTile("B1"), x(5), x(5));
+
     });
 });
-
