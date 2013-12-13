@@ -50,9 +50,25 @@ function renderer_RenderScore() {
 }
 
 function renderer_RenderNextBlock() {
+    var shape = JSTe3s.Block.mNextBlock.mShape[0];
+    var color = JSTe3s.Block.mNextBlock.mType;
+    for (var blockY = 0; blockY < 4; blockY++) {
+        for (var blockX = 0; blockX < 4; blockX++) {
+            if (shape[blockY][blockX] == '1') {
+                drawImage("B" + color, blockX + 3, blockY + 20);
+            } else {
+                drawImage("B8", blockX + 3, blockY + 20);
+            }
+        }
+    }
 }
 
 function renderer_ClearNextBlock() {
+    for (var blockY = 0; blockY < 4; blockY++) {
+        for (var blockX = 0; blockX < 4; blockX++) {
+            drawImage("B8", blockX + 3, blockY + 20);
+        }
+    }
 }
 
 function renderer_RenderFullLines() {

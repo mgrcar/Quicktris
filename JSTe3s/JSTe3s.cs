@@ -436,7 +436,8 @@ namespace JSTe3s
             }
             else if (mState == State.Pause)
             {
-                if (Native.Keyboard_GetKey() != Key.None)
+                Key key = Native.Keyboard_GetKey();
+                if (key == Key.Restart || key == Key.Pause)
                 {
                     Native.Renderer_ClearPause();
                     mTimer = new Date(Date.Now.GetTime() - mTimeLeft);
