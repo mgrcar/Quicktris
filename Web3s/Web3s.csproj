@@ -70,11 +70,11 @@
     <Content Include="img\paused.png" />
     <Content Include="img\dot.png" />
     <Content Include="img\gameover.png" />
+    <Content Include="js\jquery1.10.2.min.js" />
     <Content Include="js\JSTe3s.js" />
     <Content Include="js\mscorlib.js" />
     <Content Include="js\native.js" />
     <Content Include="Web3s.html" />
-    <Content Include="js\jquery1.9.1.js" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
