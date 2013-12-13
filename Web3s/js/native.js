@@ -28,10 +28,12 @@ function renderer_RenderBlock() {
 
 function renderer_RenderGameOver() {
     drawImage("GAMEOVER", 14, 10);
+    drawImage("RESTART", 1, 16);
 }
 
 function renderer_RenderPause() {
     drawImage("PAUSED", 14, 10);
+    drawImage("RESUME", 1, 16);
 }
 
 function renderer_ClearPause() {
@@ -40,9 +42,11 @@ function renderer_ClearPause() {
         drawImage("STAR", 14, i + 1);
         drawImage("STAR", 25, i + 1);
     }
+    drawImage("DROP", 1, 16);
 }
 
 function renderer_RenderScore() {
+    writeNumber(4, 11, JSTe3s.Program.mScore, 0);    
 }
 
 function renderer_RenderNextBlock() {
@@ -52,12 +56,20 @@ function renderer_ClearNextBlock() {
 }
 
 function renderer_RenderFullLines() {
+    writeNumber(2, 12, JSTe3s.Program.mFullLines, 7);
 }
 
 function renderer_RenderLevel() {
+    writeNumber(1, 12, JSTe3s.Program.mLevel, 7);
 }
 
 function renderer_RenderStats() {
+    var all = 0;
+    for (var i = 0; i < 7; i++) {
+        writeNumber(i * 2 + 5, 39, JSTe3s.Program.mStats[i], i + 1);
+        all += JSTe3s.Program.mStats[i];
+    }
+    writeNumber(20, 39, all, 7);
 }
 
 // Keyboard
@@ -102,10 +114,23 @@ function keyboard_GetKey() {
         case 54:
             return JSTe3s.Key.speedUp;
     }
-    return JSTe3s.Key.none;
+    return JSTe3s.Key.other;
 }
 
 // Utils
+
+function writeNumber(row, col, num, color) {
+    if (num == 0) {
+        drawImage("0" + color, col, row);
+    } else {
+        while (num > 0) {
+            var digit = num % 10;
+            num = Math.floor(num / 10);
+            drawImage(digit + "" + color, col, row);
+            col--;
+        }
+    }
+}
 
 function drawImage(imgName, x, y) {
     ctx.drawImage(getImage(imgName), x * 16, y * 16);
@@ -153,7 +178,10 @@ var imgInfo = [
     ["DOT", "img/dot.png"],
     ["GAMEOVER", "img/gameover.png"],
     ["PAUSED", "img/paused.png"],
-    ["STAR", "img/star.png"]
+    ["STAR", "img/star.png"],
+    ["RESTART", "img/restart.png"],
+    ["RESUME", "img/resume.png"],
+    ["DROP", "img/drop.png"]
 ];
 for (var i = 0; i < imgInfo.length; i++) {
     loaders.push(loadImage(imgInfo[i][0], imgInfo[i][1]));

@@ -63,6 +63,9 @@
     <Content Include="img\3.png" />
     <Content Include="img\8.png" />
     <Content Include="img\9.png" />
+    <Content Include="img\drop.png" />
+    <Content Include="img\resume.png" />
+    <Content Include="img\restart.png" />
     <Content Include="img\star.png" />
     <Content Include="img\paused.png" />
     <Content Include="img\dot.png" />
