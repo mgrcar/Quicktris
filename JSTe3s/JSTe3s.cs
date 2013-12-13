@@ -13,8 +13,8 @@ namespace JSTe3s
         {
             for (int i = 0; i < 20; i++)
             {
-                mGrid[i] = new int[10];
-                mGridBkgr[i] = new int[10];
+                mGrid[i] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                mGridBkgr[i] = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             }
         }
 
@@ -22,13 +22,13 @@ namespace JSTe3s
         {
             for (int i = 0; i < 20; i++)
             {
-                array[i] = new int[10];
+                array[i] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             }
         }
 
         public static void ArrayClear2(int[][] array, int y)
         {
-            array[y] = new int[10];
+            array[y] = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         }
 
         public static void ArrayCopy(int[][] src, int[][] dst)
@@ -77,7 +77,7 @@ namespace JSTe3s
         public static int Collapse()
         {
             int[][] tmp = new int[20][];
-            for (int i = 0; i < 20; i++) { tmp[i] = new int[10]; }
+            for (int i = 0; i < 20; i++) { tmp[i] = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; }
             int yTmp = 19;
             bool render = false;
             int fullLines = 0;
@@ -348,7 +348,7 @@ namespace JSTe3s
         public static bool mShowNext
             = false;
         public static int[] mStats
-            = new int[7];
+            = new int[] { 0, 0, 0, 0, 0, 0, 0 };
 
         public static Date mTimer;
 
@@ -367,7 +367,7 @@ namespace JSTe3s
             mScore = 0;
             mLevel = 0;
             mFullLines = 0;
-            mStats = new int[7];
+            mStats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
         }
 
         public static State mState
