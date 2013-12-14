@@ -54,7 +54,7 @@ function renderer_RenderNextBlock() {
     var color = JSTe3s.Block.mNextBlock.mType;
     for (var blockY = 0; blockY < 4; blockY++) {
         for (var blockX = 0; blockX < 4; blockX++) {
-            if (shape[blockY][blockX] == '1') {
+            if (shape[blockY][blockX] == "1") {
                 drawImage("B" + color, blockX + 3, blockY + 20);
             } else {
                 drawImage("B8", blockX + 3, blockY + 20);
@@ -92,9 +92,11 @@ function renderer_RenderStats() {
 
 var keyBuffer = [];
 
-$(document).bind("keydown", function (e) {
-    keyBuffer.push(e.which);
-    //console.log(e.which);
+$(document).on("keydown", function (e) {
+    if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 112, 97, 49, 102, 54]) >= 0) {
+        keyBuffer.push(e.which);
+        e.preventDefault();
+    }
 });
 
 function keyboard_GetKey() {
@@ -205,6 +207,16 @@ for (var i = 0; i < imgInfo.length; i++) {
 for (var i = 0; i <= 9; i++) {
     loaders.push(loadImage(i, "img/" + i + ".png"));
 }
+
+$(window).on("beforeunload", function () {
+    return "If you navigate away, your current game progress will be lost.";
+});
+
+$(window).blur(function () {
+    if (JSTe3s.Program.mState != JSTe3s.State.pause) {
+        keyBuffer.push(112); // send pause key (F1)
+    }
+});
 
 $(function () { // wait for document to load
     $.when.apply(null, loaders).done(function () { // wait for all images to load
