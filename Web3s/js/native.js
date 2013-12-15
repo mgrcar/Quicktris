@@ -4,17 +4,19 @@ function renderer_Init() {
     drawImage("BG", 0, 0);
 }
 
-function renderer_RenderPlayfield() {
+function renderer_RenderPlayfield(delay) {
     for (var row = 0; row < 20; row++) {
-        renderer_RenderRow(row);
+        renderer_RenderRow(row, delay);
+        delay = 0;
     } 
 }
 
-function renderer_RenderRow(row) {
+function renderer_RenderRow(row, delay) {
     for (var col = 0; col < 10; col++) {
         var type = JSTe3s.Playfield.mGrid[row][col];
         var img = type != 0 ? ("B" + type) : (col % 2 != 0 ? "DOT" : "B8");
-        drawImage(img, col + 15, row + 1);
+        drawImage(img, col + 15, row + 1, delay);
+        delay = 0;
     }
 }
 
@@ -138,12 +140,12 @@ function keyboard_GetKey() {
 
 var animQueue = [];
 
-function drawImage(imgName, x, y) {
+function drawImage(imgName, x, y, delay) {
     animQueue.push({
         cmd: function () {
             ctx.drawImage(getImage(imgName), x * 16, y * 16);
         },
-        msAfterPrev: 0
+        msAfterPrev: delay ? delay : 0
     });
 }
 

@@ -91,7 +91,7 @@ namespace JSTe3s
                 if (fullLine)
                 {
                     ArrayClear2(mGrid, y);
-                    Native.Renderer_RenderRow(y);
+                    Native.Renderer_RenderRow(y, 100);
                     render = true;
                     fullLines++;
                 }
@@ -104,7 +104,7 @@ namespace JSTe3s
             if (render)
             {
                 ArrayCopy(tmp, mGrid);
-                Native.Renderer_RenderPlayfield();
+                Native.Renderer_RenderPlayfield(100);
             }
             return fullLines;
         }
@@ -298,7 +298,7 @@ namespace JSTe3s
             if (success)
             {
                 Playfield.UpdateBlock();
-                Native.Renderer_RenderPlayfield();
+                Native.Renderer_RenderPlayfield(0);
             }
             return success;
         }
@@ -453,7 +453,7 @@ namespace JSTe3s
                         ResetStats();
                         Native.Renderer_Init();
                         Playfield.Clear();
-                        Native.Renderer_RenderPlayfield();
+                        Native.Renderer_RenderPlayfield(0);
                         Block.NewBlock();
                         mState = State.Play;
                     }
@@ -464,7 +464,7 @@ namespace JSTe3s
         public static void Init()
         {
             Native.Renderer_Init();
-            Native.Renderer_RenderPlayfield();
+            Native.Renderer_RenderPlayfield(0);
             Block.NewBlock();
             ResetTimer();        
         }

@@ -13,11 +13,11 @@ namespace JSTe3s
         {
         }        
 
-        public static void Renderer_RenderPlayfield()
+        public static void Renderer_RenderPlayfield(int delay)
         {
         }
 
-        public static void Renderer_RenderRow(int row)
+        public static void Renderer_RenderRow(int row, int delay)
         {
         }
 
