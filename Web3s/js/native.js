@@ -136,6 +136,17 @@ function keyboard_GetKey() {
 
 // Utils
 
+var animQueue = [];
+
+function drawImage(imgName, x, y) {
+    animQueue.push({
+        cmd: function () {
+            ctx.drawImage(getImage(imgName), x * 16, y * 16);
+        },
+        msAfterPrev: 0
+    });
+}
+
 function writeNumber(row, col, num, color) {
     if (num == 0) {
         drawImage("0" + color, col, row);
@@ -147,10 +158,6 @@ function writeNumber(row, col, num, color) {
             col--;
         }
     }
-}
-
-function drawImage(imgName, x, y) {
-    ctx.drawImage(getImage(imgName), x * 16, y * 16);
 }
 
 function loadImage(name, src) {
@@ -180,6 +187,23 @@ function getImage(name) {
     }
     return null;
 }
+
+var requestAnimFrame = requestAnimationFrame ||
+    webkitRequestAnimationFrame ||
+    mozRequestAnimationFrame ||
+    oRequestAnimationFrame ||
+    msRequestAnimationFrame ||
+    function (callback) {
+        setTimeout(callback, 0);
+    };
+
+// WHAT IS THIS GOOD FOR?
+//window.cancelAnimFrame = window.cancelAnimationFrame ||
+//    window.webkitCancelAnimationFrame ||
+//    window.mozCancelAnimationFrame ||
+//    function (id) {
+//        window.clearTimeout(id);
+//    };
 
 // Main
 
@@ -213,28 +237,32 @@ $(window).on("beforeunload", function () {
 
 $(window).blur(function () {
     if (JSTe3s.Program.mState != JSTe3s.State.pause) {
-        keyBuffer.push(112); // send pause key (F1)
+        keyBuffer.push(112); // push pause key (F1)
     }
 });
+
+var lastAnimCmd = new Date(0);
+
+function mainLoop() {
+    // animate
+    while (animQueue.length > 0) {
+        if ((new Date() - lastAnimCmd) >= animQueue[0].msAfterPrev) {
+            animQueue[0].cmd();
+            animQueue.shift();
+            lastAnimCmd = new Date();
+        } else {
+            break;
+        }
+    }
+    // execute main game loop
+    JSTe3s.Program.play();
+    requestAnimFrame(mainLoop);
+}
 
 $(function () { // wait for document to load
     $.when.apply(null, loaders).done(function () { // wait for all images to load
         ctx = $("#screen")[0].getContext("2d");
         JSTe3s.Program.init();
-        var animFrame = window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            window.oRequestAnimationFrame ||
-            window.msRequestAnimationFrame ||
-            null;
-        if (animFrame) {
-            var recursivePlay = function () {
-                JSTe3s.Program.play();
-                animFrame(recursivePlay);
-            };
-            animFrame(recursivePlay);
-        } else {
-            setInterval(JSTe3s.Program.play, 0);
-        }
+        requestAnimFrame(mainLoop);
     });
 });
