@@ -190,23 +190,6 @@ function getImage(name) {
     return null;
 }
 
-var requestAnimFrame = requestAnimationFrame ||
-    webkitRequestAnimationFrame ||
-    mozRequestAnimationFrame ||
-    oRequestAnimationFrame ||
-    msRequestAnimationFrame ||
-    function (callback) {
-        setTimeout(callback, 0);
-    };
-
-// WHAT IS THIS GOOD FOR?
-//window.cancelAnimFrame = window.cancelAnimationFrame ||
-//    window.webkitCancelAnimationFrame ||
-//    window.mozCancelAnimationFrame ||
-//    function (id) {
-//        window.clearTimeout(id);
-//    };
-
 // Main
 
 var loaders = [];
@@ -243,28 +226,30 @@ $(window).blur(function () {
     }
 });
 
-var lastAnimCmd = new Date(0);
+var lastAnimCmdTime = new Date(0);
 
 function mainLoop() {
+    // main game loop
+    JSTe3s.Program.play();
     // animate
     while (animQueue.length > 0) {
-        if ((new Date() - lastAnimCmd) >= animQueue[0].msAfterPrev) {
+        if ((new Date() - lastAnimCmdTime) >= animQueue[0].msAfterPrev) {
             animQueue[0].cmd();
             animQueue.shift();
-            lastAnimCmd = new Date();
+            lastAnimCmdTime = new Date();
         } else {
             break;
         }
     }
-    // execute main game loop
-    JSTe3s.Program.play();
-    requestAnimFrame(mainLoop);
+    // repeat
+    setTimeout(mainLoop, 0);
 }
 
 $(function () { // wait for document to load
     $.when.apply(null, loaders).done(function () { // wait for all images to load
         ctx = $("#screen")[0].getContext("2d");
         JSTe3s.Program.init();
-        requestAnimFrame(mainLoop);
+        // run main loop
+        setTimeout(mainLoop, 0);
     });
 });
