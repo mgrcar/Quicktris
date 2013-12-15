@@ -546,7 +546,6 @@ namespace Quicktris
                 Right,
                 Rotate,
                 Drop,
-                Down,
                 Restart,
                 Pause,
                 ShowNext,
@@ -576,9 +575,8 @@ namespace Quicktris
                     case ConsoleKey.Spacebar:
                     case ConsoleKey.D4:
                     case ConsoleKey.NumPad4:
-                        return Key.Drop;
                     case ConsoleKey.DownArrow:
-                        return Key.Down;
+                        return Key.Drop;
                     case ConsoleKey.R:
                         return Key.Restart;
                     case ConsoleKey.F1:
@@ -700,7 +698,8 @@ namespace Quicktris
             }
             else if (mState == State.Pause)
             {
-                if (Keyboard.GetKey() != Keyboard.Key.None)
+                Keyboard.Key key = Keyboard.GetKey();
+                if (key == Keyboard.Key.Restart || key == Keyboard.Key.Pause)
                 {
                     Renderer.ClearPause();
                     mTimer = DateTime.Now - mTimeLeft;

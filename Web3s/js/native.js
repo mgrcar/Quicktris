@@ -118,9 +118,8 @@ function keyboard_GetKey() {
         case 32:
         case 100:
         case 52:
-            return JSTe3s.Key.drop;
         case 40:
-            return JSTe3s.Key.down; // *** not working (?)
+            return JSTe3s.Key.drop;
         case 82:
             return JSTe3s.Key.restart;
         case 112:

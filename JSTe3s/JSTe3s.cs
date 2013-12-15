@@ -320,12 +320,11 @@ namespace JSTe3s
         Right = 2,
         Rotate = 3,
         Drop = 4,
-        Down = 5,
-        Restart = 6,
-        Pause = 7,
-        ShowNext = 8,
-        SpeedUp = 9,
-        Other = 10
+        Restart = 5,
+        Pause = 6,
+        ShowNext = 7,
+        SpeedUp = 8,
+        Other = 9    
     }
 
     public enum State
