@@ -29,17 +29,17 @@ function renderer_RenderBlock() {
 }
 
 function renderer_RenderGameOver() {
-    drawImage("GAMEOVER", 14, 10);
+    drawImage("GAMEOVER", 14, 9);
     drawImage("RESTART", 1, 16);
 }
 
 function renderer_RenderPause() {
-    drawImage("PAUSED", 14, 10);
+    drawImage("PAUSED", 14, 9);
     drawImage("RESUME", 1, 16);
 }
 
 function renderer_ClearPause() {
-    for (var i = 9; i < 12; i++) {
+    for (var i = 8; i < 13; i++) {
         renderer_RenderRow(i);
         drawImage("STAR", 14, i + 1);
         drawImage("STAR", 25, i + 1);
