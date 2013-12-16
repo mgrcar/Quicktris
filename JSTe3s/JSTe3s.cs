@@ -91,7 +91,8 @@ namespace JSTe3s
                 if (fullLine)
                 {
                     ArrayClear2(mGrid, y);
-                    Native.Renderer_RenderRow(y, 100);
+                    Native.Renderer_RenderRow(y);
+                    Native.Sound_Play("LINE");
                     render = true;
                     fullLines++;
                 }
@@ -104,7 +105,7 @@ namespace JSTe3s
             if (render)
             {
                 ArrayCopy(tmp, mGrid);
-                Native.Renderer_RenderPlayfield(100);
+                Native.Renderer_RenderPlayfield();
             }
             return fullLines;
         }
@@ -298,7 +299,7 @@ namespace JSTe3s
             if (success)
             {
                 Playfield.UpdateBlock();
-                Native.Renderer_RenderPlayfield(0);
+                Native.Renderer_RenderPlayfield();
             }
             return success;
         }
@@ -412,8 +413,10 @@ namespace JSTe3s
                     if (!Block.MoveDown())
                     {
                         int points = (21 + 3 * (mLevel + 1)) - mSteps;
-                        mScore += points;
+                        int tmp = Math.Floor(mScore / 1000);
+                        mScore += points;                        
                         if (mScore > 99999) { mScore = 99999; } // prevent overflow
+                        if (Math.Floor(mScore / 1000) > tmp) { Native.Sound_Play("1000"); }
                         Native.Renderer_RenderScore();
                         mSteps = 0;
                         mFullLines += Playfield.Collapse();
@@ -424,6 +427,7 @@ namespace JSTe3s
                         Playfield.UpdateBkgr();
                         if (!Block.NewBlock())
                         {
+                            Native.Sound_Play("GAMEOVER");
                             Native.Renderer_RenderGameOver();
                             mState = State.GameOver;
                             return;
@@ -453,7 +457,7 @@ namespace JSTe3s
                         ResetStats();
                         Native.Renderer_Init();
                         Playfield.Clear();
-                        Native.Renderer_RenderPlayfield(0);
+                        Native.Renderer_RenderPlayfield();
                         Block.NewBlock();
                         mState = State.Play;
                     }
@@ -464,7 +468,7 @@ namespace JSTe3s
         public static void Init()
         {
             Native.Renderer_Init();
-            Native.Renderer_RenderPlayfield(0);
+            Native.Renderer_RenderPlayfield();
             Block.NewBlock();
             ResetTimer();        
         }

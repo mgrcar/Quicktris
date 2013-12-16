@@ -1,22 +1,50 @@
-﻿// Renderer
+﻿var loaders = [];
+var images = {};
+var sounds = {};
+var ctx;
+var tmpCanvas = $("<canvas width=\"16\" height=\"16\"></canvas>")[0];
+var tmpCtx = tmpCanvas.getContext("2d");
+var colors = ["#ffff55", "#aa00aa", "#aa0000", "#aa5500", "#00aa00", "#00aaaa", "#0000aa", "#aaaaaa", "#000000"];
+
+var imgInfo = [
+    ["BG", "img/background.png"],
+    ["DOT", "img/dot.png"],
+    ["GAMEOVER", "img/gameover.png"],
+    ["PAUSED", "img/paused.png"],
+    ["STAR", "img/star.png"],
+    ["RESTART", "img/restart.png"],
+    ["RESUME", "img/resume.png"],
+    ["DROP", "img/drop.png"]
+];
+
+var sndInfo = [
+    ["LINE", "snd/line"],
+    ["1000", "snd/1000"],
+    ["GAMEOVER", "snd/gameover"]
+];
+
+var cmdQueue = [];
+var keyBuffer = [];
+
+var sndFx = false;
+
+// Renderer
 
 function renderer_Init() {
     drawImage("BG", 0, 0);
 }
 
-function renderer_RenderPlayfield(delay) {
+function renderer_RenderPlayfield() {
     for (var row = 0; row < 20; row++) {
-        renderer_RenderRow(row, delay);
-        delay = 0;
+        renderer_RenderRow(row);
     } 
 }
 
-function renderer_RenderRow(row, delay) {
+function renderer_RenderRow(row) {
     for (var col = 0; col < 10; col++) {
         var type = JSTe3s.Playfield.mGrid[row][col];
         var img = type != 0 ? ("B" + type) : (col % 2 != 0 ? "DOT" : "B8");
-        drawImage(img, col + 15, row + 1, delay);
-        delay = 0;
+        drawImage(img, col + 15, row + 1);
     }
 }
 
@@ -92,8 +120,6 @@ function renderer_RenderStats() {
 
 // Keyboard
 
-var keyBuffer = [];
-
 $(document).on("keydown", function (e) {
     if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 112, 97, 49, 102, 54]) >= 0) {
         keyBuffer.push(e.which);
@@ -136,16 +162,20 @@ function keyboard_GetKey() {
     return JSTe3s.Key.other;
 }
 
+// Sound
+
+function sound_Play(name) {
+    cmdQueue.push(function () {
+        sndFx = true;
+        sounds[name].play();
+    });
+}
+
 // Utils
 
-var animQueue = [];
-
-function drawImage(imgName, x, y, delay) {
-    animQueue.push({
-        cmd: function () {
-            ctx.drawImage(getImage(imgName), x * 16, y * 16);
-        },
-        msAfterPrev: delay ? delay : 0
+function drawImage(imgName, x, y) {
+    cmdQueue.push(function () {
+        ctx.drawImage(getImage(imgName), x * 16, y * 16);
     });
 }
 
@@ -173,6 +203,16 @@ function loadImage(name, src) {
     return deferred.promise();
 }
 
+function loadSound(name, file) {
+    var deferred = $.Deferred();
+    sounds[name] = new Howl({
+        urls: [file + ".mp3", file + ".ogg", file + ".wav"],
+        onload: function () { deferred.resolve(); },
+        onend: function() { sndFx = false; } 
+    });
+    return deferred.promise();
+}
+
 function getImage(name) {
     if (images[name]) { return images[name]; }
     if (name[0] == "B") {
@@ -192,28 +232,15 @@ function getImage(name) {
 
 // Main
 
-var loaders = [];
-var images = {};
-var ctx;
-var tmpCanvas = $("<canvas width=\"16\" height=\"16\"></canvas>")[0];
-var tmpCtx = tmpCanvas.getContext("2d");
-var colors = ["#ffff55", "#aa00aa", "#aa0000", "#aa5500", "#00aa00", "#00aaaa", "#0000aa", "#aaaaaa", "#000000"];
-
-var imgInfo = [
-    ["BG", "img/background.png"],
-    ["DOT", "img/dot.png"],
-    ["GAMEOVER", "img/gameover.png"],
-    ["PAUSED", "img/paused.png"],
-    ["STAR", "img/star.png"],
-    ["RESTART", "img/restart.png"],
-    ["RESUME", "img/resume.png"],
-    ["DROP", "img/drop.png"]
-];
 for (var i = 0; i < imgInfo.length; i++) {
     loaders.push(loadImage(imgInfo[i][0], imgInfo[i][1]));
 }
 for (var i = 0; i <= 9; i++) {
     loaders.push(loadImage(i, "img/" + i + ".png"));
+}
+
+for (var i = 0; i < sndInfo.length; i++) {
+    loaders.push(loadSound(sndInfo[i][0], sndInfo[i][1]));
 }
 
 $(window).on("beforeunload", function () {
@@ -226,30 +253,31 @@ $(window).blur(function () {
     }
 });
 
-var lastAnimCmdTime = new Date(0);
-
-function mainLoop() {
-    // main game loop
+function gameLoop() {
     JSTe3s.Program.play();
-    // animate
-    while (animQueue.length > 0) {
-        if ((new Date() - lastAnimCmdTime) >= animQueue[0].msAfterPrev) {
-            animQueue[0].cmd();
-            animQueue.shift();
-            lastAnimCmdTime = new Date();
-        } else {
-            break;
-        }
+    if (cmdQueue.length == 0 && !sndFx) {
+        setTimeout(gameLoop, 0);
+    } else {
+        setTimeout(animLoop, 0);
     }
-    // repeat
-    setTimeout(mainLoop, 0);
+}
+
+function animLoop() {
+    while (cmdQueue.length > 0 && !sndFx) {
+        cmdQueue[0]();
+        cmdQueue.shift();
+    }
+    if (cmdQueue.length > 0 || sndFx) {
+        setTimeout(animLoop, 0);
+    } else {
+        setTimeout(gameLoop, 0);
+    }
 }
 
 $(function () { // wait for document to load
-    $.when.apply(null, loaders).done(function () { // wait for all images to load
+    $.when.apply(null, loaders).done(function () { // wait for all images and sounds to load
         ctx = $("#screen")[0].getContext("2d");
         JSTe3s.Program.init();
-        // run main loop
-        setTimeout(mainLoop, 0);
+        setTimeout(animLoop, 0);
     });
 });

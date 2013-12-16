@@ -13,11 +13,11 @@ namespace JSTe3s
         {
         }        
 
-        public static void Renderer_RenderPlayfield(int delay)
+        public static void Renderer_RenderPlayfield()
         {
         }
 
-        public static void Renderer_RenderRow(int row, int delay)
+        public static void Renderer_RenderRow(int row)
         {
         }
 
@@ -66,6 +66,12 @@ namespace JSTe3s
         public static Key Keyboard_GetKey()
         {
             return Key.Other;
+        }
+
+        // Sound
+
+        public static void Sound_Play(string name)
+        { 
         }
     }
 }
