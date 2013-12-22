@@ -74,8 +74,10 @@
     <Content Include="js\jquery.min.js" />
     <Content Include="js\JSTe3s.min.js" />
     <Content Include="js\mscorlib.min.js" />
-    <Content Include="js\native.js" />
-    <Content Include="Web3s.html" />
+    <Content Include="js\dostetris.js" />
+    <Content Include="dostetris.html" />
+    <Content Include="js\tetromini.js" />
+    <Content Include="tetromini.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

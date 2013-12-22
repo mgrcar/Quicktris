@@ -1,4 +1,14 @@
-﻿var loaders = [];
+﻿/*==========================================================================;
+ *
+ *  File:    dostetris.js
+ *  Desc:    Look & feel of the original DOS tetris (requires JSTe3s)
+ *  Created: Oct-2013
+ *
+ *  Author:  Miha Grcar
+ *
+ ***************************************************************************/
+
+var loaders = [];
 var images = {};
 var sounds = {};
 var ctx;
@@ -121,7 +131,7 @@ function renderer_RenderStats() {
 // Keyboard
 
 $(document).on("keydown", function (e) {
-    if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 112, 97, 49, 102, 54]) >= 0) {
+    if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 97, 49, 102, 54, 80, 19]) >= 0) {
         keyBuffer.push(e.which);
         e.preventDefault();
     }
@@ -150,7 +160,8 @@ function keyboard_GetKey() {
             return JSTe3s.Key.drop;
         case 82:
             return JSTe3s.Key.restart;
-        case 112:
+        case 80:
+        case 19:
             return JSTe3s.Key.pause;
         case 97:
         case 49:
@@ -249,7 +260,7 @@ $(window).on("beforeunload", function () {
 
 $(window).blur(function () {
     if (JSTe3s.Program.mState != JSTe3s.State.pause) {
-        keyBuffer.push(112); // push pause key (F1)
+        keyBuffer.push(80); // push pause key (F1)
     }
 });
 
