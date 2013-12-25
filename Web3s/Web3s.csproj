@@ -64,6 +64,8 @@
     <Content Include="img\8.png" />
     <Content Include="img\9.png" />
     <Content Include="img\drop.png" />
+    <Content Include="img\mini_gameover.png" />
+    <Content Include="img\mini_paused.png" />
     <Content Include="img\resume.png" />
     <Content Include="img\restart.png" />
     <Content Include="img\star.png" />
@@ -90,7 +92,7 @@
         <WebProjectProperties>
           <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>45071</DevelopmentServerPort>
+          <DevelopmentServerPort>64899</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>
           </IISUrl>

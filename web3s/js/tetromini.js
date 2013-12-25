@@ -12,19 +12,12 @@ var loaders = [];
 var images = {};
 var sounds = {};
 var ctx;
-var tmpCanvas = $("<canvas width=\"16\" height=\"16\"></canvas>")[0];
-var tmpCtx = tmpCanvas.getContext("2d");
-var colors = ["#ffff55", "#aa00aa", "#aa0000", "#aa5500", "#00aa00", "#00aaaa", "#0000aa", "#aaaaaa", "#000000"];
+var imgData;
+var imgDataData;
 
 var imgInfo = [
-    ["BG", "img/background.png"],
-    ["DOT", "img/dot.png"],
-    ["GAMEOVER", "img/gameover.png"],
-    ["PAUSED", "img/paused.png"],
-    ["STAR", "img/star.png"],
-    ["RESTART", "img/restart.png"],
-    ["RESUME", "img/resume.png"],
-    ["DROP", "img/drop.png"]
+    ["GAMEOVER", "img/mini_gameover.png"],
+    ["PAUSED", "img/mini_paused.png"]
 ];
 
 var sndInfo = [
@@ -41,7 +34,6 @@ var sndFx = false;
 // Renderer
 
 function renderer_Init() {
-    drawImage("BG", 0, 0);
 }
 
 function renderer_RenderPlayfield() {
@@ -53,8 +45,7 @@ function renderer_RenderPlayfield() {
 function renderer_RenderRow(row) {
     for (var col = 0; col < 10; col++) {
         var type = JSTe3s.Playfield.mGrid[row][col];
-        var img = type != 0 ? ("B" + type) : (col % 2 != 0 ? "DOT" : "B8");
-        drawImage(img, col + 15, row + 1);
+        putPixel(col, row, type != 0 ? 192 : 0); 
     }
 }
 
@@ -67,65 +58,33 @@ function renderer_RenderBlock() {
 }
 
 function renderer_RenderGameOver() {
-    drawImage("GAMEOVER", 14, 9);
-    drawImage("RESTART", 1, 16);
+    drawImage("GAMEOVER", 0, 0);
 }
 
 function renderer_RenderPause() {
-    drawImage("PAUSED", 14, 9);
-    drawImage("RESUME", 1, 16);
+    drawImage("PAUSED", 0, 0);
 }
 
 function renderer_ClearPause() {
-    for (var i = 8; i < 13; i++) {
-        renderer_RenderRow(i);
-        drawImage("STAR", 14, i + 1);
-        drawImage("STAR", 25, i + 1);
-    }
-    drawImage("DROP", 1, 16);
+    renderer_RenderPlayfield();
 }
 
 function renderer_RenderScore() {
-    writeNumber(4, 11, JSTe3s.Program.mScore, 0);
 }
 
 function renderer_RenderNextBlock() {
-    var shape = JSTe3s.Block.mNextBlock.mShape[0];
-    var color = JSTe3s.Block.mNextBlock.mType;
-    for (var blockY = 0; blockY < 4; blockY++) {
-        for (var blockX = 0; blockX < 4; blockX++) {
-            if (shape[blockY][blockX] == "1") {
-                drawImage("B" + color, blockX + 3, blockY + 20);
-            } else {
-                drawImage("B8", blockX + 3, blockY + 20);
-            }
-        }
-    }
 }
 
 function renderer_ClearNextBlock() {
-    for (var blockY = 0; blockY < 4; blockY++) {
-        for (var blockX = 0; blockX < 4; blockX++) {
-            drawImage("B8", blockX + 3, blockY + 20);
-        }
-    }
 }
 
 function renderer_RenderFullLines() {
-    writeNumber(2, 12, JSTe3s.Program.mFullLines, 7);
 }
 
 function renderer_RenderLevel() {
-    writeNumber(1, 12, JSTe3s.Program.mLevel, 7);
 }
 
 function renderer_RenderStats() {
-    var all = 0;
-    for (var i = 0; i < 7; i++) {
-        writeNumber(i * 2 + 5, 39, JSTe3s.Program.mStats[i], i + 1);
-        all += JSTe3s.Program.mStats[i];
-    }
-    writeNumber(20, 39, all, 7);
 }
 
 // Keyboard
@@ -186,21 +145,18 @@ function sound_Play(name) {
 
 function drawImage(imgName, x, y) {
     cmdQueue.push(function () {
-        ctx.drawImage(getImage(imgName), x * 16, y * 16);
+        ctx.drawImage(images[imgName], x, y);
     });
 }
 
-function writeNumber(row, col, num, color) {
-    if (num == 0) {
-        drawImage("0" + color, col, row);
-    } else {
-        while (num > 0) {
-            var digit = num % 10;
-            num = Math.floor(num / 10);
-            drawImage(digit + "" + color, col, row);
-            col--;
-        }
-    }
+function putPixel(x, y, v) {
+    cmdQueue.push(function () {
+        imgDataData[0] = v;
+        imgDataData[1] = v;
+        imgDataData[2] = v;
+        imgDataData[3] = 255;
+        ctx.putImageData(imgData, x, y);
+    });
 }
 
 function loadImage(name, src) {
@@ -224,39 +180,15 @@ function loadSound(name, file) {
     return deferred.promise();
 }
 
-function getImage(name) {
-    if (images[name]) { return images[name]; }
-    if (name[0] == "B") {
-        var color = parseInt(name[1]);
-        tmpCtx.fillStyle = colors[color];
-        tmpCtx.fillRect(0, 0, 16, 16);
-        return tmpCanvas;
-    } else if (name[0] >= "0" && name[0] <= "9") {
-        var color = parseInt(name[1]);
-        tmpCtx.fillStyle = colors[color];
-        tmpCtx.fillRect(0, 0, 16, 16);
-        tmpCtx.drawImage(images[name[0]], 0, 0);
-        return tmpCanvas;
-    }
-    return null;
-}
-
 // Main
 
 for (var i = 0; i < imgInfo.length; i++) {
     loaders.push(loadImage(imgInfo[i][0], imgInfo[i][1]));
 }
-for (var i = 0; i <= 9; i++) {
-    loaders.push(loadImage(i, "img/" + i + ".png"));
-}
 
 for (var i = 0; i < sndInfo.length; i++) {
     loaders.push(loadSound(sndInfo[i][0], sndInfo[i][1]));
 }
-
-$(window).on("beforeunload", function () {
-    return "If you navigate away, your current game progress will be lost.";
-});
 
 $(window).blur(function () {
     if (JSTe3s.Program.mState != JSTe3s.State.pause) {
@@ -288,6 +220,8 @@ function animLoop() {
 $(function () { // wait for document to load
     $.when.apply(null, loaders).done(function () { // wait for all images and sounds to load
         ctx = $("#screen")[0].getContext("2d");
+        imgData = ctx.createImageData(1, 1);
+        imgDataData = imgData.data;
         JSTe3s.Program.init();
         setTimeout(animLoop, 0);
     });
