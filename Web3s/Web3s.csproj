@@ -51,7 +51,6 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="css\game.css" />
     <Content Include="img\0.png" />
     <Content Include="img\1.png" />
     <Content Include="img\2.png" />

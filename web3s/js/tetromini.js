@@ -192,7 +192,7 @@ for (var i = 0; i < sndInfo.length; i++) {
 
 $(window).blur(function () {
     if (JSTe3s.Program.mState != JSTe3s.State.pause) {
-        keyBuffer.push(80); // push pause key (F1)
+        keyBuffer.push(80); // push pause key
     }
 });
 
