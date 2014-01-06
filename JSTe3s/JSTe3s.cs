@@ -1,3 +1,13 @@
+/*==========================================================================;
+ *
+ *  File:    JSTe3s.cs
+ *  Desc:    Simple tetris engine (compiles to JS)
+ *  Created: Oct-2013
+ *
+ *  Author:  Miha Grcar
+ *
+ ***************************************************************************/
+
 using System;
 
 namespace JSTe3s
@@ -13,7 +23,7 @@ namespace JSTe3s
         {
             for (int i = 0; i < 20; i++)
             {
-                mGrid[i] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                mGrid[i] = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
                 mGridBkgr[i] = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             }
         }
@@ -22,7 +32,7 @@ namespace JSTe3s
         {
             for (int i = 0; i < 20; i++)
             {
-                array[i] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                array[i] = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             }
         }
 
@@ -241,7 +251,7 @@ namespace JSTe3s
             return true;
         }
 
-        public static void Render()
+        public static void Update()
         {
             Playfield.UpdateBlock();
             Native.Renderer_RenderBlock();
@@ -252,7 +262,7 @@ namespace JSTe3s
             if (Check(mBlock.mPosX - 1, mBlock.mPosY, mBlock.mRot))
             {
                 mBlock.mPosX--;
-                Render();
+                Update();
                 return true;
             }
             return false;
@@ -263,7 +273,7 @@ namespace JSTe3s
             if (Check(mBlock.mPosX + 1, mBlock.mPosY, mBlock.mRot))
             {
                 mBlock.mPosX++;
-                Render();
+                Update();
                 return true;
             }
             return false;
@@ -274,7 +284,7 @@ namespace JSTe3s
             if (Check(mBlock.mPosX, mBlock.mPosY + 1, mBlock.mRot))
             {
                 mBlock.mPosY++;
-                Render();
+                Update();
                 return true;
             }
             return false;
@@ -286,7 +296,7 @@ namespace JSTe3s
             if (Check(mBlock.mPosX, mBlock.mPosY, rot))
             {
                 mBlock.mRot = rot;
-                Render();
+                Update();
                 return true;
             }
             return false;
@@ -459,6 +469,7 @@ namespace JSTe3s
                         Playfield.Clear();
                         Native.Renderer_RenderPlayfield();
                         Block.NewBlock();
+                        ResetTimer();
                         mState = State.Play;
                     }
                 }

@@ -718,6 +718,7 @@ namespace Quicktris
                         Playfield.Clear();
                         Renderer.RenderPlayfield();
                         Block.NewBlock();
+                        ResetTimer();
                         mState = State.Play;
                     }
                     else

@@ -1,4 +1,14 @@
-﻿using System;
+﻿/*==========================================================================;
+ *
+ *  File:    Native.cs
+ *  Desc:    Simple tetris engine (interface to JS code)
+ *  Created: Oct-2013
+ *
+ *  Author:  Miha Grcar
+ *
+ ***************************************************************************/
+
+using System;
 using System.Runtime.CompilerServices;
 
 namespace JSTe3s
