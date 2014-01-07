@@ -89,13 +89,6 @@ function renderer_RenderStats() {
 
 // Keyboard
 
-$(document).on("keydown", function (e) {
-    if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 97, 49, 102, 54, 80, 19]) >= 0) {
-        keyBuffer.push(e.which);
-        e.preventDefault();
-    }
-});
-
 function keyboard_GetKey() {
     if (keyBuffer.length == 0) { return JSTe3s.Key.none; }
     var keyCode = keyBuffer.shift();
@@ -182,20 +175,6 @@ function loadSound(name, file) {
 
 // Main
 
-for (var i = 0; i < imgInfo.length; i++) {
-    loaders.push(loadImage(imgInfo[i][0], imgInfo[i][1]));
-}
-
-for (var i = 0; i < sndInfo.length; i++) {
-    loaders.push(loadSound(sndInfo[i][0], sndInfo[i][1]));
-}
-
-$(window).blur(function () {
-    if (JSTe3s.Program.mState != JSTe3s.State.pause) {
-        keyBuffer.push(80); // push pause key
-    }
-});
-
 function gameLoop() {
     JSTe3s.Program.play();
     if (cmdQueue.length == 0 && !sndFx) {
@@ -218,7 +197,30 @@ function animLoop() {
 }
 
 $(function () { // wait for document to load
-    $.when.apply(null, loaders).done(function () { // wait for all images and sounds to load
+    // keyboard handler
+    $(document).on("keydown", function (e) {
+        if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 97, 49, 102, 54, 80, 19]) >= 0) {
+            keyBuffer.push(e.which);
+            e.preventDefault();
+        }
+    });
+    // initialize loaders
+    // images
+    for (var i = 0; i < imgInfo.length; i++) {
+        loaders.push(loadImage(imgInfo[i][0], imgInfo[i][1]));
+    }
+    // sounds
+    for (var i = 0; i < sndInfo.length; i++) {
+        loaders.push(loadSound(sndInfo[i][0], sndInfo[i][1]));
+    }
+    // pause on blur
+    $(window).blur(function () {
+        if (JSTe3s.Program.mState != JSTe3s.State.pause) {
+            keyBuffer.push(80); // push pause key
+        }
+    });
+    // run main loop
+    $.when.apply(null, loaders).done(function () { // wait for images and sounds to load
         ctx = $("#screen")[0].getContext("2d");
         imgData = ctx.createImageData(1, 1);
         imgDataData = imgData.data;
