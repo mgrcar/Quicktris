@@ -210,7 +210,7 @@ function loadImage(name, src) {
 function loadSound(name, file) {
     var deferred = $.Deferred();
     sounds[name] = new Howl({
-        urls: [file + ".mp3", file + ".ogg", file + ".wav"],
+        urls: [file + ".ogg", file + ".mp3", file + ".wav"],
         onload: function () { deferred.resolve(); },
         onend: function() { sndFx = false; } 
     });
