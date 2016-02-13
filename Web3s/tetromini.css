@@ -1,0 +1,5 @@
+﻿body { background-color: gray; font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 14px; color: #505050; } 
+#game { position: absolute; left: 50%; margin-left: -5px; top: 50%; margin-top: -10px; }
+#share { position: absolute; height: 30px; width: 280px; line-height: 30px; text-align: center; background-color: white; left: 50%; margin-left: -140px; top: 100%; margin-top: -30px; }
+a { color: #505050; text-decoration: none; }
+a:hover { text-decoration: underline; }
