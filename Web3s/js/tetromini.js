@@ -34,6 +34,9 @@ var sndFx = false;
 // Renderer
 
 function renderer_Init() {
+    $("#score").text(0);
+    $("#level").text(0);
+    $("#lines").text(0);
 }
 
 function renderer_RenderPlayfield() {
@@ -70,6 +73,7 @@ function renderer_ClearPause() {
 }
 
 function renderer_RenderScore() {
+    $("#score").text(JSTe3s.Program.mScore);
 }
 
 function renderer_RenderNextBlock() {
@@ -79,9 +83,11 @@ function renderer_ClearNextBlock() {
 }
 
 function renderer_RenderFullLines() {
+    $("#lines").text(JSTe3s.Program.mFullLines);
 }
 
 function renderer_RenderLevel() {
+    $("#level").text(JSTe3s.Program.mLevel);   
 }
 
 function renderer_RenderStats() {
