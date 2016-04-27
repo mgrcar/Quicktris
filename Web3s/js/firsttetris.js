@@ -219,41 +219,29 @@ function animLoop() {
     }
 }
 
-function bgNoiseToBgNoise2(vol) {
-    console.log("?");
-    vol += 0.01;
-    var angle = vol * (Math.PI / 2);
-    sounds["BGNOISE2"].volume(Math.sin(angle));
-    sounds["BGNOISE"].volume(Math.cos(angle));
-    if (vol < 1) {
-        setTimeout("bgNoiseToBgNoise2(" + vol + ")", 10);
-    } 
-}
-
-function bgNoise2ToBgNoise(vol) {
+function bgNoiseCrossFade(vol, swap) {
     console.log("!");
     vol += 0.01;
     var angle = vol * (Math.PI / 2);
-    sounds["BGNOISE"].volume(Math.sin(angle));
-    sounds["BGNOISE2"].volume(Math.cos(angle));
+    sounds[(swap == null) ? "BGNOISE" : "BGNOISE2"].volume(Math.sin(angle));
+    sounds[(swap == null) ? "BGNOISE2" : "BGNOISE"].volume(Math.cos(angle));
     if (vol < 1) {
-        setTimeout("bgNoise2ToBgNoise(" + vol + ")", 10);
+        setTimeout(function () { bgNoiseCrossFade(vol, swap) }, 10);
     } 
 }
 
-function start1() {
+function start1(vol) {
     console.log("start1");
-    sounds["BGNOISE"].volume(0).play();
-    setTimeout(start2, 5000);
-    setTimeout("bgNoiseToBgNoise2(0)", 6000);   
+    sounds["BGNOISE"].volume(vol).play();
+    setTimeout("start2(0)", 5000);
+    setTimeout("bgNoiseCrossFade(0, 1)", 6000);   
 }
 
 function start2(vol) {
-    if (vol == null) { vol = 0;}
     console.log("start2 " + vol);
     sounds["BGNOISE2"].volume(vol).play();
-    setTimeout(start1, 5000);
-    setTimeout("bgNoise2ToBgNoise(0)", 6000);   
+    setTimeout("start1(0)", 5000);
+    setTimeout("bgNoiseCrossFade(0)", 6000);   
 }
 
 $(function () { // wait for document to load
