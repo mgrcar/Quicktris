@@ -22,8 +22,18 @@ var imgInfo = [
 var sndInfo = [
     ["BGNOISE1", "snd/bgnoise"],
     ["BGNOISE2", "snd/bgnoise"],
-    ["DROPDOWN", "snd/dropdown"],
-    ["DROPUP", "snd/dropup"]
+    ["DROPDOWN1", "snd/dropdown1"],
+    ["DROPUP1", "snd/dropup1"],
+    ["DROPDOWN2", "snd/dropdown2"],
+    ["DROPUP2", "snd/dropup2"],
+    ["DROPDOWN3", "snd/dropdown3"],
+    ["DROPUP3", "snd/dropup3"],
+    ["DROPDOWN4", "snd/dropdown4"],
+    ["DROPUP4", "snd/dropup4"],
+    ["DROPDOWN5", "snd/dropdown5"],
+    ["DROPUP5", "snd/dropup5"],
+    ["DROPDOWN6", "snd/dropdown6"],
+    ["DROPUP6", "snd/dropup6"]
 ];
 
 var cmdQueue = [];
@@ -238,14 +248,6 @@ function playBgNoise(track, vol) {
     setTimeout("bgNoiseCrossFade(0, " + track + ")", 6000);   
 }
 
-function playDropDown() {
-    sounds["DROPDOWN"].play();
-}
-
-function playDropUp() {
-    sounds["DROPUP"].play();
-}
-
 var keyStates = [];
 
 $(function () { // wait for document to load
@@ -253,7 +255,7 @@ $(function () { // wait for document to load
     $(document).on("keydown", function (e) {
         if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 97, 49, 102, 54, 80, 19]) >= 0) {
             if (!keyStates[e.which]) {
-                playDropDown();
+                sounds["DROPDOWN" + Math.floor((Math.random() * 6) + 1)].play();
                 keyStates[e.which] = 1;
             }
             keyBuffer.push(e.which);
@@ -262,8 +264,8 @@ $(function () { // wait for document to load
     });
      $(document).on("keyup", function (e) {
         if (keyStates[e.which]) {
+            sounds["DROPUP" + Math.floor((Math.random() * 6) + 1)].play();
             delete keyStates[e.which];
-            playDropUp();
         }
      });
     // initialize loaders
