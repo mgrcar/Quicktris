@@ -20,8 +20,10 @@ var imgInfo = [
 ];
 
 var sndInfo = [
-      ["BGNOISE1", "snd/bgnoise"],
-      ["BGNOISE2", "snd/bgnoise"]
+    ["BGNOISE1", "snd/bgnoise"],
+    ["BGNOISE2", "snd/bgnoise"],
+    ["DROPDOWN", "snd/dropdown"],
+    ["DROPUP", "snd/dropup"]
 ];
 
 var cmdQueue = [];
@@ -181,7 +183,7 @@ function loadImage(name, src) {
 function loadSound(name, file) {
     var deferred = $.Deferred();
     sounds[name] = new Howl({
-        urls: [file + ".ogg", file + ".mp3", file + ".wav"],
+        src: [file + ".ogg", file + ".mp3", file + ".wav"],
         onload: function () { deferred.resolve(); },
         onend: function() { sndFx = false; } 
     });
@@ -220,32 +222,50 @@ function other(track) {
     return track == 1 ? 2 : 1;
 }
 
-function bgNoiseCrossFade(vol, direction) {
+function bgNoiseCrossFade(vol, track) {
     vol += 0.1;
-    console.log("!");
     var angle = vol * (Math.PI / 2);
-    sounds["BGNOISE" + other(direction)].volume(Math.sin(angle));
-    sounds["BGNOISE" + direction].volume(Math.cos(angle));
+    sounds["BGNOISE" + other(track)].volume(Math.sin(angle));
+    sounds["BGNOISE" + track].volume(Math.cos(angle));
     if (vol < 1) {
-        setTimeout("bgNoiseCrossFade(" + vol + ", " + direction + ")", 100);
+        setTimeout("bgNoiseCrossFade(" + vol + ", " + track + ")", 100);
     } 
 }
 
-function start(track, vol) {
-    console.log("start" + track);
+function playBgNoise(track, vol) {
     sounds["BGNOISE" + track].volume(vol).play();
-    setTimeout("start(" + other(track) + ", 0)", 5000);
+    setTimeout("playBgNoise(" + other(track) + ", 0)", 5000);
     setTimeout("bgNoiseCrossFade(0, " + track + ")", 6000);   
 }
+
+function playDropDown() {
+    sounds["DROPDOWN"].play();
+}
+
+function playDropUp() {
+    sounds["DROPUP"].play();
+}
+
+var keyStates = [];
 
 $(function () { // wait for document to load
     // keyboard handler
     $(document).on("keydown", function (e) {
         if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 97, 49, 102, 54, 80, 19]) >= 0) {
+            if (!keyStates[e.which]) {
+                playDropDown();
+                keyStates[e.which] = 1;
+            }
             keyBuffer.push(e.which);
             e.preventDefault();
         }
     });
+     $(document).on("keyup", function (e) {
+        if (keyStates[e.which]) {
+            delete keyStates[e.which];
+            playDropUp();
+        }
+     });
     // initialize loaders
     // images
     for (var i = 0; i < imgInfo.length; i++) {
@@ -271,7 +291,7 @@ $(function () { // wait for document to load
     // run main loop
     $.when.apply(null, loaders).done(function () { // wait for images and sounds to load
         // background sound loop
-        start(2, 1);
+        playBgNoise(2, 1);
         ctx = $("#screen")[0].getContext("2d");
         JSTe3s.Program.init();
         setTimeout(animLoop, 0);
