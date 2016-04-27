@@ -1,8 +1,8 @@
 ﻿/*==========================================================================;
  *
- *  File:    dostetris.js
- *  Desc:    Look & feel of the original DOS tetris (requires JSTe3s)
- *  Created: Oct-2013
+ *  File:    firsttetris.js
+ *  Desc:    Look & feel of the first tetris ever (requires JSTe3s)
+ *  Created: Apr-2016
  *
  *  Author:  Miha Grcar
  *
@@ -16,19 +16,15 @@ var ctx;
 var imgInfo = [
     ["BG", "img/first_background.png"],
     ["DOT", "img/first_dot.png"],
-    ["GAMEOVER", "img/gameover.png"],
-    ["PAUSED", "img/paused.png"],
-    ["STAR", "img/star.png"],
-    ["RESTART", "img/restart.png"],
-    ["RESUME", "img/resume.png"],
-    ["DROP", "img/drop.png"],
     ["BLOCK", "img/first_block.png"]
 ];
 
 var sndInfo = [
-    ["LINE", "snd/line"],
-    ["1000", "snd/1000"],
-    ["GAMEOVER", "snd/gameover"]
+//    ["LINE", "snd/line"],
+//    ["1000", "snd/1000"],
+//    ["GAMEOVER", "snd/gameover"]
+      ["BGNOISE", "snd/bgnoise"],
+      ["BGNOISE2", "snd/bgnoise"]
 ];
 
 var cmdQueue = [];
@@ -65,22 +61,12 @@ function renderer_RenderBlock() {
 }
 
 function renderer_RenderGameOver() {
-    drawImage("GAMEOVER", 14, 9);
-    drawImage("RESTART", 1, 16);
 }
 
 function renderer_RenderPause() {
-    drawImage("PAUSED", 14, 9);
-    drawImage("RESUME", 1, 16);
 }
 
 function renderer_ClearPause() {
-    for (var i = 8; i < 13; i++) {
-        renderer_RenderRow(i);
-        drawImage("STAR", 14, i + 1);
-        drawImage("STAR", 25, i + 1);
-    }
-    drawImage("DROP", 1, 16);
 }
 
 function renderer_RenderScore() {
@@ -161,10 +147,6 @@ function keyboard_GetKey() {
 // Sound
 
 function sound_Play(name) {
-    cmdQueue.push(function () {
-        sndFx = true;
-        sounds[name].play();
-    });
 }
 
 // Utils
@@ -202,7 +184,7 @@ function loadImage(name, src) {
 function loadSound(name, file) {
     var deferred = $.Deferred();
     sounds[name] = new Howl({
-        urls: [file + ".ogg", file + ".mp3", file + ".wav"],
+        urls: [/*file + ".ogg", file + ".mp3",*/ file + ".wav"],
         onload: function () { deferred.resolve(); },
         onend: function() { sndFx = false; } 
     });
@@ -237,6 +219,43 @@ function animLoop() {
     }
 }
 
+function bgNoiseToBgNoise2(vol) {
+    console.log("?");
+    vol += 0.01;
+    var angle = vol * (Math.PI / 2);
+    sounds["BGNOISE2"].volume(Math.sin(angle));
+    sounds["BGNOISE"].volume(Math.cos(angle));
+    if (vol < 1) {
+        setTimeout("bgNoiseToBgNoise2(" + vol + ")", 10);
+    } 
+}
+
+function bgNoise2ToBgNoise(vol) {
+    console.log("!");
+    vol += 0.01;
+    var angle = vol * (Math.PI / 2);
+    sounds["BGNOISE"].volume(Math.sin(angle));
+    sounds["BGNOISE2"].volume(Math.cos(angle));
+    if (vol < 1) {
+        setTimeout("bgNoise2ToBgNoise(" + vol + ")", 10);
+    } 
+}
+
+function start1() {
+    console.log("start1");
+    sounds["BGNOISE"].volume(0).play();
+    setTimeout(start2, 5000);
+    setTimeout("bgNoiseToBgNoise2(0)", 6000);   
+}
+
+function start2(vol) {
+    if (vol == null) { vol = 0;}
+    console.log("start2 " + vol);
+    sounds["BGNOISE2"].volume(vol).play();
+    setTimeout(start1, 5000);
+    setTimeout("bgNoise2ToBgNoise(0)", 6000);   
+}
+
 $(function () { // wait for document to load
     // keyboard handler
     $(document).on("keydown", function (e) {
@@ -269,6 +288,8 @@ $(function () { // wait for document to load
     });
     // run main loop
     $.when.apply(null, loaders).done(function () { // wait for images and sounds to load
+        // background sound loop
+        start2(1);
         ctx = $("#screen")[0].getContext("2d");
         JSTe3s.Program.init();
         setTimeout(animLoop, 0);
