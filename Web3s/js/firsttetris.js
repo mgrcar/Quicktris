@@ -20,10 +20,7 @@ var imgInfo = [
 ];
 
 var sndInfo = [
-//    ["LINE", "snd/line"],
-//    ["1000", "snd/1000"],
-//    ["GAMEOVER", "snd/gameover"]
-      ["BGNOISE", "snd/bgnoise"],
+      ["BGNOISE1", "snd/bgnoise"],
       ["BGNOISE2", "snd/bgnoise"]
 ];
 
@@ -184,7 +181,7 @@ function loadImage(name, src) {
 function loadSound(name, file) {
     var deferred = $.Deferred();
     sounds[name] = new Howl({
-        urls: [/*file + ".ogg", file + ".mp3",*/ file + ".wav"],
+        urls: [file + ".ogg", file + ".mp3", file + ".wav"],
         onload: function () { deferred.resolve(); },
         onend: function() { sndFx = false; } 
     });
@@ -219,29 +216,26 @@ function animLoop() {
     }
 }
 
-function bgNoiseCrossFade(vol, swap) {
+function other(track) {
+    return track == 1 ? 2 : 1;
+}
+
+function bgNoiseCrossFade(vol, direction) {
+    vol += 0.1;
     console.log("!");
-    vol += 0.01;
     var angle = vol * (Math.PI / 2);
-    sounds[(swap == null) ? "BGNOISE" : "BGNOISE2"].volume(Math.sin(angle));
-    sounds[(swap == null) ? "BGNOISE2" : "BGNOISE"].volume(Math.cos(angle));
+    sounds["BGNOISE" + other(direction)].volume(Math.sin(angle));
+    sounds["BGNOISE" + direction].volume(Math.cos(angle));
     if (vol < 1) {
-        setTimeout(function () { bgNoiseCrossFade(vol, swap) }, 10);
+        setTimeout("bgNoiseCrossFade(" + vol + ", " + direction + ")", 100);
     } 
 }
 
-function start1(vol) {
-    console.log("start1");
-    sounds["BGNOISE"].volume(vol).play();
-    setTimeout("start2(0)", 5000);
-    setTimeout("bgNoiseCrossFade(0, 1)", 6000);   
-}
-
-function start2(vol) {
-    console.log("start2 " + vol);
-    sounds["BGNOISE2"].volume(vol).play();
-    setTimeout("start1(0)", 5000);
-    setTimeout("bgNoiseCrossFade(0)", 6000);   
+function start(track, vol) {
+    console.log("start" + track);
+    sounds["BGNOISE" + track].volume(vol).play();
+    setTimeout("start(" + other(track) + ", 0)", 5000);
+    setTimeout("bgNoiseCrossFade(0, " + track + ")", 6000);   
 }
 
 $(function () { // wait for document to load
@@ -277,7 +271,7 @@ $(function () { // wait for document to load
     // run main loop
     $.when.apply(null, loaders).done(function () { // wait for images and sounds to load
         // background sound loop
-        start2(1);
+        start(2, 1);
         ctx = $("#screen")[0].getContext("2d");
         JSTe3s.Program.init();
         setTimeout(animLoop, 0);
