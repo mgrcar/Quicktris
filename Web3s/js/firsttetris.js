@@ -33,7 +33,15 @@ var sndInfo = [
     ["DROPDOWN5", "snd/dropdown5"],
     ["DROPUP5", "snd/dropup5"],
     ["DROPDOWN6", "snd/dropdown6"],
-    ["DROPUP6", "snd/dropup6"]
+    ["DROPUP6", "snd/dropup6"],
+    ["KEYDOWN1", "snd/keydown1"],
+    ["KEYUP1", "snd/keyup1"],
+    ["KEYDOWN2", "snd/keydown2"],
+    ["KEYUP2", "snd/keyup2"],
+    ["KEYDOWN3", "snd/keydown3"],
+    ["KEYUP3", "snd/keyup3"],
+    ["KEYDOWN4", "snd/keydown4"],
+    ["KEYUP4", "snd/keyup4"]
 ];
 
 var cmdQueue = [];
@@ -255,7 +263,11 @@ $(function () { // wait for document to load
     $(document).on("keydown", function (e) {
         if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 97, 49, 102, 54, 80, 19]) >= 0) {
             if (!keyStates[e.which]) {
-                sounds["DROPDOWN" + Math.floor((Math.random() * 6) + 1)].play();
+                if ($.inArray(e.which, [32, 100, 52, 40]) >= 0) {
+                    sounds["DROPDOWN" + Math.floor((Math.random() * 6) + 1)].play();    
+                } else {
+                    sounds["KEYDOWN" + Math.floor((Math.random() * 4) + 1)].play();    
+                }
                 keyStates[e.which] = 1;
             }
             keyBuffer.push(e.which);
@@ -264,7 +276,11 @@ $(function () { // wait for document to load
     });
      $(document).on("keyup", function (e) {
         if (keyStates[e.which]) {
-            sounds["DROPUP" + Math.floor((Math.random() * 6) + 1)].play();
+            if ($.inArray(e.which, [32, 100, 52, 40]) >= 0) {
+                sounds["DROPUP" + Math.floor((Math.random() * 6) + 1)].play();
+            } else {
+                sounds["KEYUP" + Math.floor((Math.random() * 4) + 1)].play();
+            }
             delete keyStates[e.which];
         }
      });
