@@ -8,6 +8,14 @@
  *
  ***************************************************************************/
 
+// [ ] max score / lvl / full rows
+// [x] next
+// [x] pause / resume
+// [x] game over
+// [ ] visual fx + cursor
+// [ ] stop hum on blur
+// [ ] screen width
+
 var loaders = [];
 var images = {};
 var sounds = {};
@@ -16,7 +24,11 @@ var ctx;
 var imgInfo = [
     ["BG", "img/first_background.png"],
     ["DOT", "img/first_dot.png"],
-    ["BLOCK", "img/first_block.png"]
+    ["BLOCK", "img/first_block.png"],
+    ["BLANK", "img/first_blank.png"],
+    ["GAMEOVER", "img/first_gameover.png"],
+    ["PAUSED", "img/first_paused.png"],
+    ["RESUME", "img/first_resume.png"]
 ];
 
 var sndInfo = [
@@ -78,12 +90,15 @@ function renderer_RenderBlock() {
 }
 
 function renderer_RenderGameOver() {
+    drawImage("GAMEOVER", 0, 15);
 }
 
 function renderer_RenderPause() {
+    drawImage("PAUSED", 0, 15);
 }
 
 function renderer_ClearPause() {
+    drawImage("RESUME", 0, 15);
 }
 
 function renderer_RenderScore() {
@@ -92,13 +107,12 @@ function renderer_RenderScore() {
 
 function renderer_RenderNextBlock() {
     var shape = JSTe3s.Block.mNextBlock.mShape[0];
-    var color = JSTe3s.Block.mNextBlock.mType;
     for (var blockY = 0; blockY < 4; blockY++) {
         for (var blockX = 0; blockX < 4; blockX++) {
             if (shape[blockY][blockX] == "1") {
-                drawImage("B" + color, blockX + 3, blockY + 20);
+                drawImage("BLOCK", blockX * 2 + 16, blockY + 10);
             } else {
-                drawImage("B8", blockX + 3, blockY + 20);
+                drawImage("BLANK", blockX * 2 + 16, blockY + 10);
             }
         }
     }
@@ -107,7 +121,7 @@ function renderer_RenderNextBlock() {
 function renderer_ClearNextBlock() {
     for (var blockY = 0; blockY < 4; blockY++) {
         for (var blockX = 0; blockX < 4; blockX++) {
-            drawImage("B8", blockX + 3, blockY + 20);
+            drawImage("BLANK", blockX * 2 + 16, blockY + 10);
         }
     }
 }
