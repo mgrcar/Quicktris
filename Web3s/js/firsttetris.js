@@ -8,13 +8,14 @@
  *
  ***************************************************************************/
 
-// [ ] max score / lvl / full rows
+// [x] max score / lvl / full rows
 // [x] next
 // [x] pause / resume
 // [x] game over
 // [ ] visual fx + cursor
 // [ ] stop hum on blur
-// [ ] screen width
+// [x] screen width
+// [ ] keys
 
 var loaders = [];
 var images = {};
@@ -275,6 +276,7 @@ var keyStates = [];
 $(function () { // wait for document to load
     // keyboard handler
     $(document).on("keydown", function (e) {
+        console.log(e.which);
         if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 97, 49, 102, 54, 80, 19]) >= 0) {
             if (!keyStates[e.which]) {
                 if ($.inArray(e.which, [32, 100, 52, 40]) >= 0) {
