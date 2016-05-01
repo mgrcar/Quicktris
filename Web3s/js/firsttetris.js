@@ -10,9 +10,7 @@
 
 // TODO:
 // [ ] visual fx + cursor
-// [x] stop hum on blur
 // [ ] create sound assets
-// [ ] P/N - resume game
 
 var loaders = [];
 var images = {};
