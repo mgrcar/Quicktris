@@ -8,14 +8,11 @@
  *
  ***************************************************************************/
 
-// [x] max score / lvl / full rows
-// [x] next
-// [x] pause / resume
-// [x] game over
+// TODO:
 // [ ] visual fx + cursor
 // [ ] stop hum on blur
-// [x] screen width
-// [ ] keys
+// [ ] create sound assets
+// [ ] P/N - resume game
 
 var loaders = [];
 var images = {};
@@ -144,33 +141,33 @@ function keyboard_GetKey() {
     if (keyBuffer.length == 0) { return JSTe3s.Key.none; }
     var keyCode = keyBuffer.shift();
     switch (keyCode) {
-        case 37:
-        case 103:
-        case 55:
+        case 37:  // left arrow
+        case 103: // numpad 7
+        case 55:  // 7
             return JSTe3s.Key.left;
-        case 39:
-        case 105:
-        case 57:
+        case 39:  // right arrow
+        case 105: // numpad 9
+        case 57:  // 9
             return JSTe3s.Key.right; 
-        case 38:
-        case 104:
-        case 56:
+        case 38:  // up arrow
+        case 104: // numpad 8
+        case 56:  // 8
             return JSTe3s.Key.rotate;        
-        case 32:
-        case 100:
-        case 52:
-        case 40:
+        case 32:  // space
+        case 101: // numpad 5
+        case 53:  // 5
+        case 40:  // down arrow
             return JSTe3s.Key.drop;
-        case 82:
+        case 78:  // n
             return JSTe3s.Key.restart;
-        case 80:
-        case 19:
+        case 80:  // p
+        case 19:  // pause/break
             return JSTe3s.Key.pause;
-        case 97:
-        case 49:
+        case 97:  // numpad 1
+        case 49:  // 1
             return JSTe3s.Key.showNext;
-        case 102:
-        case 54:
+        case 100: // numpad 4
+        case 52:  // 4
             return JSTe3s.Key.speedUp;
     }
     return JSTe3s.Key.other;
@@ -277,9 +274,9 @@ $(function () { // wait for document to load
     // keyboard handler
     $(document).on("keydown", function (e) {
         console.log(e.which);
-        if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 82, 97, 49, 102, 54, 80, 19]) >= 0) {
+        if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 78, 97, 49, 101, 53, 80, 19]) >= 0) {
             if (!keyStates[e.which]) {
-                if ($.inArray(e.which, [32, 100, 52, 40]) >= 0) {
+                if ($.inArray(e.which, [32, 101, 53, 40]) >= 0) {
                     sounds["DROPDOWN" + Math.floor((Math.random() * 6) + 1)].play();    
                 } else {
                     sounds["KEYDOWN" + Math.floor((Math.random() * 4) + 1)].play();    
