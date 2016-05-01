@@ -10,7 +10,6 @@
 
 // TODO:
 // [ ] visual fx + cursor
-// [ ] create sound assets
 
 var loaders = [];
 var images = {};
