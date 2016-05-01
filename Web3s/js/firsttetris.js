@@ -10,7 +10,7 @@
 
 // TODO:
 // [ ] visual fx + cursor
-// [ ] stop hum on blur
+// [x] stop hum on blur
 // [ ] create sound assets
 // [ ] P/N - resume game
 
@@ -252,20 +252,32 @@ function other(track) {
     return track == 1 ? 2 : 1;
 }
 
-function bgNoiseCrossFade(vol, track) {
+var timeouts = [];
+
+function bgNoiseCrossFade(vol, track, id) {
+    //console.log(timeouts);
+    delete timeouts[id];
     vol += 0.1;
     var angle = vol * (Math.PI / 2);
     sounds["BGNOISE" + other(track)].volume(Math.sin(angle));
     sounds["BGNOISE" + track].volume(Math.cos(angle));
     if (vol < 1) {
-        setTimeout("bgNoiseCrossFade(" + vol + ", " + track + ")", 100);
+        var id1 = setTimeout(function () { bgNoiseCrossFade(vol, track, id1); }, 100);
+        //console.log("bgNoiseCrossFade " + id1)
+        timeouts[id1] = 1;
     } 
 }
 
-function playBgNoise(track, vol) {
+function playBgNoise(track, vol, id) {
+    //console.log(timeouts);
+    if (id) { delete timeouts[id]; }
     sounds["BGNOISE" + track].volume(vol).play();
-    setTimeout("playBgNoise(" + other(track) + ", 0)", 5000);
-    setTimeout("bgNoiseCrossFade(0, " + track + ")", 6000);   
+    var id1 = setTimeout(function () { playBgNoise(other(track), 0, id1); }, 5000);
+    //console.log("playBgNoise " + id1)
+    timeouts[id1] = 1;
+    var id2 = setTimeout(function () { bgNoiseCrossFade(0, track, id2); }, 6000);
+    //console.log("bgNoiseCrossFade " + id2)
+    timeouts[id2] = 1;
 }
 
 var keyStates = [];
@@ -273,7 +285,6 @@ var keyStates = [];
 $(function () { // wait for document to load
     // keyboard handler
     $(document).on("keydown", function (e) {
-        console.log(e.which);
         if ($.inArray(e.which, [37, 103, 55, 39, 105, 57, 38, 104, 56, 32, 100, 52, 40, 78, 97, 49, 101, 53, 80, 19]) >= 0) {
             if (!keyStates[e.which]) {
                 if ($.inArray(e.which, [32, 101, 53, 40]) >= 0) {
@@ -317,6 +328,17 @@ $(function () { // wait for document to load
     $(window).blur(function () {
         if (JSTe3s.Program.mState != JSTe3s.State.pause) {
             keyBuffer.push(80); // push pause key
+        }
+        for (var id in timeouts) {
+            clearTimeout(id);
+        }
+        timeouts = [];
+        sounds["BGNOISE1"].stop();
+        sounds["BGNOISE2"].stop();
+    });
+    $(window).focus(function () {
+        if (timeouts.length == 0) {
+            playBgNoise(2, 1);
         }
     });
     // run main loop
