@@ -54,8 +54,6 @@ var sndInfo = [
 var cmdQueue = [];
 var keyBuffer = [];
 
-var sndFx = false;
-
 // Renderer
 
 function renderer_Init() {
@@ -68,6 +66,12 @@ function renderer_RenderPlayfield() {
     } 
 }
 
+function renderer_ClearRow(row) {
+    for (var col = 0; col < 10; col++) {
+        drawImage("DOT", col * 2 + 27, row + 1);
+    }
+}
+
 function renderer_RenderRow(row) {
     for (var col = 0; col < 10; col++) {
         var type = JSTe3s.Playfield.mGrid[row][col];
@@ -77,6 +81,11 @@ function renderer_RenderRow(row) {
 }
 
 function renderer_RenderBlock() {
+    for (var row = JSTe3s.Block.mBlock.mPosY - 1; row < JSTe3s.Block.mBlock.mPosY + 4; row++) {
+        if (row >= 0 && row < 20) {
+            renderer_ClearRow(row);
+        }
+    }
     for (var row = JSTe3s.Block.mBlock.mPosY - 1; row < JSTe3s.Block.mBlock.mPosY + 4; row++) {
         if (row >= 0 && row < 20) {
             renderer_RenderRow(row);
@@ -178,9 +187,16 @@ function sound_Play(name) {
 // Utils
 
 function drawImage(imgName, x, y) {
-    cmdQueue.push(function () {
-        ctx.drawImage(getImage(imgName), x * 8, y * 16);
-    });
+    var img = images[imgName];
+    for (var _Y = 0; _Y < img.height; _Y += 16) {
+       for (var _X = 0; _X < img.width; _X += 8) {
+            (function(X, Y) {
+                cmdQueue.push(function () {
+                    ctx.drawImage(img, X, Y, 8, 16, x * 8 + X, y * 16 + Y, 8, 16);
+                }); 
+            })(_X, _Y);
+       }
+   }
 }
 
 function writeNumber(row, col, num) {
@@ -211,35 +227,30 @@ function loadSound(name, file) {
     var deferred = $.Deferred();
     sounds[name] = new Howl({
         src: [file + ".ogg", file + ".mp3", file + ".wav"],
-        onload: function () { deferred.resolve(); },
-        onend: function() { sndFx = false; } 
+        onload: function () { deferred.resolve(); }
     });
     return deferred.promise();
-}
-
-function getImage(name) {
-    if (images[name]) { return images[name]; }
-    return null;
 }
 
 // Main
 
 function gameLoop() {
     JSTe3s.Program.play();
-    if (cmdQueue.length == 0 && !sndFx) {
+    if (cmdQueue.length == 0) {
         setTimeout(gameLoop, 0);
     } else {
         setTimeout(animLoop, 0);
     }
 }
 
-function animLoop() {
-    while (cmdQueue.length > 0 && !sndFx) {
+function animLoop() {    
+    var i = 50;
+    while (cmdQueue.length > 0 && --i >= 0) {
         cmdQueue[0]();
         cmdQueue.shift();
     }
-    if (cmdQueue.length > 0 || sndFx) {
-        setTimeout(animLoop, 0);
+    if (cmdQueue.length > 0) {
+        setTimeout(animLoop, 1000/60); 
     } else {
         setTimeout(gameLoop, 0);
     }
@@ -252,7 +263,6 @@ function other(track) {
 var timeouts = [];
 
 function bgNoiseCrossFade(vol, track, id) {
-    //console.log(timeouts);
     delete timeouts[id];
     vol += 0.1;
     var angle = vol * (Math.PI / 2);
@@ -260,20 +270,16 @@ function bgNoiseCrossFade(vol, track, id) {
     sounds["BGNOISE" + track].volume(Math.cos(angle));
     if (vol < 1) {
         var id1 = setTimeout(function () { bgNoiseCrossFade(vol, track, id1); }, 100);
-        //console.log("bgNoiseCrossFade " + id1)
         timeouts[id1] = 1;
     } 
 }
 
 function playBgNoise(track, vol, id) {
-    //console.log(timeouts);
     if (id) { delete timeouts[id]; }
     sounds["BGNOISE" + track].volume(vol).play();
     var id1 = setTimeout(function () { playBgNoise(other(track), 0, id1); }, 5000);
-    //console.log("playBgNoise " + id1)
     timeouts[id1] = 1;
     var id2 = setTimeout(function () { bgNoiseCrossFade(0, track, id2); }, 6000);
-    //console.log("bgNoiseCrossFade " + id2)
     timeouts[id2] = 1;
 }
 
@@ -291,7 +297,8 @@ $(function () { // wait for document to load
                 }
                 keyStates[e.which] = 1;
             }
-            keyBuffer.push(e.which);
+            //keyBuffer.push(e.which);
+            keyBuffer = [ e.which ];
             e.preventDefault();
         }
     });
