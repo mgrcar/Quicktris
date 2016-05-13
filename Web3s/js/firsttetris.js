@@ -23,7 +23,9 @@ var imgInfo = [
     ["BLANK", "img/first_blank.png"],
     ["GAMEOVER", "img/first_gameover.png"],
     ["PAUSED", "img/first_paused.png"],
-    ["RESUME", "img/first_resume.png"]
+    ["RESUME", "img/first_resume.png"],
+    ["CURSOR", "img/first_cursor.png"],
+    ["CURSORBLANK", "img/first_cursorblank.png"]
 ];
 
 var sndInfo = [
@@ -66,11 +68,11 @@ function renderer_RenderPlayfield() {
     } 
 }
 
-function renderer_ClearRow(row) {
-    for (var col = 0; col < 10; col++) {
-        drawImage("DOT", col * 2 + 27, row + 1);
-    }
-}
+// function renderer_ClearRow(row) {
+//     for (var col = 0; col < 10; col++) {
+//         drawImage("DOT", col * 2 + 27, row + 1);
+//     }
+// }
 
 function renderer_RenderRow(row) {
     for (var col = 0; col < 10; col++) {
@@ -81,11 +83,11 @@ function renderer_RenderRow(row) {
 }
 
 function renderer_RenderBlock() {
-    for (var row = JSTe3s.Block.mBlock.mPosY - 1; row < JSTe3s.Block.mBlock.mPosY + 4; row++) {
-        if (row >= 0 && row < 20) {
-            renderer_ClearRow(row);
-        }
-    }
+    // for (var row = JSTe3s.Block.mBlock.mPosY - 1; row < JSTe3s.Block.mBlock.mPosY + 4; row++) {
+    //     if (row >= 0 && row < 20) {
+    //         renderer_ClearRow(row);
+    //     }
+    // }
     for (var row = JSTe3s.Block.mBlock.mPosY - 1; row < JSTe3s.Block.mBlock.mPosY + 4; row++) {
         if (row >= 0 && row < 20) {
             renderer_RenderRow(row);
@@ -189,14 +191,23 @@ function sound_Play(name) {
 function drawImage(imgName, x, y) {
     var img = images[imgName];
     for (var _Y = 0; _Y < img.height; _Y += 16) {
-       for (var _X = 0; _X < img.width; _X += 8) {
-            (function(X, Y) {
+        (function (Y) {
+            cmdQueue.push(function () {
+                drawCursorAt(0, y + Y / 16);
+            }); 
+        })(_Y);
+        for (var _X = 0; _X < img.width; _X += 8) {
+            (function (X, Y) {
                 cmdQueue.push(function () {
                     ctx.drawImage(img, X, Y, 8, 16, x * 8 + X, y * 16 + Y, 8, 16);
+                    drawCursorAt(x + X / 8, y + Y / 16);
                 }); 
             })(_X, _Y);
-       }
-   }
+        }
+    }
+    cmdQueue.push(function () {
+        drawCursorAt(0, 0);
+    });
 }
 
 function writeNumber(row, col, num) {
@@ -243,16 +254,16 @@ function gameLoop() {
     }
 }
 
-function animLoop() {    
-    var i = 50;
+function animLoop() {
+    var i = 35;
+    if (cmdQueue.length > i) {
+        setTimeout(animLoop, 10);   
+    } else {
+        setTimeout(gameLoop, 0);
+    }
     while (cmdQueue.length > 0 && --i >= 0) {
         cmdQueue[0]();
         cmdQueue.shift();
-    }
-    if (cmdQueue.length > 0) {
-        setTimeout(animLoop, 1000/60); 
-    } else {
-        setTimeout(gameLoop, 0);
     }
 }
 
@@ -283,6 +294,24 @@ function playBgNoise(track, vol, id) {
     timeouts[id2] = 1;
 }
 
+var oldCursorX = 0;
+var oldCursorY = 0;
+
+function drawCursorAt(x, y) {
+    var state = Math.floor(Date.now() % 1000 / 100) % 2 == 0;
+    if (x != oldCursorX || y != oldCursorY) {
+        ctx.drawImage(images["CURSORBLANK"], oldCursorX * 8, oldCursorY * 16 + 13);    
+    }
+    ctx.drawImage(images[state ? "CURSOR" : "CURSORBLANK"], x * 8, y * 16 + 13);
+    oldCursorX = x;
+    oldCursorY = y;
+}
+
+function drawCursor() {
+    drawCursorAt(oldCursorX, oldCursorY);
+    setTimeout(drawCursor, 100);
+}
+
 var keyStates = [];
 
 $(function () { // wait for document to load
@@ -297,8 +326,8 @@ $(function () { // wait for document to load
                 }
                 keyStates[e.which] = 1;
             }
-            //keyBuffer.push(e.which);
-            keyBuffer = [ e.which ];
+            keyBuffer.push(e.which);
+            while (keyBuffer.length > 2) { keyBuffer.shift(); } // limit keyboard buffer size
             e.preventDefault();
         }
     });
@@ -347,10 +376,10 @@ $(function () { // wait for document to load
     });
     // run main loop
     $.when.apply(null, loaders).done(function () { // wait for images and sounds to load
-        // background sound loop
-        playBgNoise(2, 1);
+        playBgNoise(2, 1); // background sound loop
         ctx = $("#screen")[0].getContext("2d");
         JSTe3s.Program.init();
         setTimeout(animLoop, 0);
+        drawCursor();
     });
 });
