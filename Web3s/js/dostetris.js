@@ -219,13 +219,14 @@ function loadSound(name, file) {
 
 function getImage(name) {
     if (images[name]) { return images[name]; }
+    var color;
     if (name[0] == "B") {
-        var color = parseInt(name[1]);
+        color = parseInt(name[1]);
         tmpCtx.fillStyle = colors[color];
         tmpCtx.fillRect(0, 0, 16, 16);
         return tmpCanvas;
     } else if (name[0] >= "0" && name[0] <= "9") {
-        var color = parseInt(name[1]);
+        color = parseInt(name[1]);
         tmpCtx.fillStyle = colors[color];
         tmpCtx.fillRect(0, 0, 16, 16);
         tmpCtx.drawImage(images[name[0]], 0, 0);
@@ -270,11 +271,11 @@ $(function () { // wait for document to load
     for (var i = 0; i < imgInfo.length; i++) {
         loaders.push(loadImage(imgInfo[i][0], imgInfo[i][1]));
     }
-    for (var i = 0; i <= 9; i++) {
+    for (i = 0; i <= 9; i++) {
         loaders.push(loadImage(i, "img/" + i + ".png"));
     }
     // sounds
-    for (var i = 0; i < sndInfo.length; i++) {
+    for (i = 0; i < sndInfo.length; i++) {
         loaders.push(loadSound(sndInfo[i][0], sndInfo[i][1]));
     }
     // warn on unload
