@@ -14,7 +14,9 @@ var sounds = {};
 var ctx;
 
 var imgInfo = [
-    ["BG", "img/first_background.png"],
+    ["BGPLAYFIELD", "img/first_background_playfield.png"],
+    ["BGSCORE", "img/first_background_score.png"],
+    ["BGHELP", "img/first_background_help.png"],
     ["DOT", "img/first_dot.png"],
     ["BLOCK", "img/first_block.png"],
     ["BLANK", "img/first_blank.png"],
@@ -53,12 +55,24 @@ var sndInfo = [
 var cmdQueue = [];
 var keyBuffer = [];
 
+var blockOld;
+var blockOldRef;
+
+var timeouts = [];
+var keyStates = [];
+
+var oldCursorX = 0;
+var oldCursorY = 0;
+
 // Renderer
 
 function renderer_Init() {
-    cmdQueue.push(function () { iinit = 44; });
-    drawImage("BG", 0, 0);
-    cmdQueue.push(function () { iinit = 22; });
+    cmdQueue.push(function () { 
+        ctx.clearRect(0, 0, 592, 384); 
+    });
+    drawImage("BGPLAYFIELD", 25, 1);
+    drawImage("BGHELP", 52, 2);
+    drawImage("BGSCORE", 0, 1);
 }
 
 function renderer_RenderPlayfield() {
@@ -78,9 +92,6 @@ function renderer_RenderRow(row) {
         }
     });
 }
-
-var blockOld;
-var blockOldRef;
 
 function renderBlock(block, imgName) {
      for (var row = block.mPosY; row < block.mPosY + 4; row++) {
@@ -260,10 +271,8 @@ function gameLoop() {
     }
 }
 
-var iinit = 22;
-
 function animLoop() {
-    var i = iinit;
+    var i = 22;
     if (cmdQueue.length > i) {
         setTimeout(animLoop, 16);   
     } else {
@@ -278,8 +287,6 @@ function animLoop() {
 function other(track) {
     return track == 1 ? 2 : 1;
 }
-
-var timeouts = [];
 
 function bgNoiseCrossFade(vol, track, id) {
     delete timeouts[id];
@@ -302,9 +309,6 @@ function playBgNoise(track, vol, id) {
     timeouts[id2] = 1;
 }
 
-var oldCursorX = 0;
-var oldCursorY = 0;
-
 function queueDrawCursorAt(x, y) {
     cmdQueue.push(function () { drawCursorAt(x, y); }); 
 }
@@ -324,8 +328,6 @@ function drawCursor() {
     setTimeout(drawCursor, 100);
 }
 
-var keyStates = [];
-
 $(function () { // wait for document to load
     // keyboard handler
     $(document).on("keydown", function (e) {
@@ -343,7 +345,7 @@ $(function () { // wait for document to load
             e.preventDefault();
         }
     });
-     $(document).on("keyup", function (e) {
+    $(document).on("keyup", function (e) {
         if (keyStates[e.which]) {
             if ($.inArray(e.which, [32, 100, 52, 40]) >= 0) {
                 sounds["DROPUP" + Math.floor((Math.random() * 6) + 1)].play();
