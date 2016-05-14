@@ -206,7 +206,7 @@ function animLoop() {
 
 function updateShareLinks(score) {
     var txt = "I%27m%20playing%20Tetromini.";
-    if (score > 0) { txt += "%20My%20current%20score%20is%20" + score + "."; } 
+    if (score > 0) { txt += "%20My%20score%20is%20" + score + "."; } 
     $("#share-twitter").attr("href", "http://twitter.com/share?text=" + txt + "&url=http://tetromini.org");
     $("#share-facebook").attr("href", "http://www.facebook.com/sharer.php?p[url]=http://tetromini.org");
     $("#share-blogger").attr("href", "http://www.blogger.com/blog_this.pyra?t&u=http://tetromini.org&n=" + txt);
