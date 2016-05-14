@@ -226,7 +226,7 @@ $(function () { // wait for document to load
         loaders.push(loadImage(imgInfo[i][0], imgInfo[i][1]));
     }
     // sounds
-    for (var i = 0; i < sndInfo.length; i++) {
+    for (i = 0; i < sndInfo.length; i++) {
         loaders.push(loadSound(sndInfo[i][0], sndInfo[i][1]));
     }
     // pause on blur
