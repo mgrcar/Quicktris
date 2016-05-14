@@ -13,6 +13,18 @@ var images = {};
 var sounds = {};
 var ctx;
 
+var cmdQueue = [];
+var keyBuffer = [];
+
+var blockOld;
+var blockOldRef;
+
+var timeouts = [];
+var keyStates = [];
+
+var oldCursorX = 0;
+var oldCursorY = 0;
+
 var imgInfo = [
     ["BGPLAYFIELD", "img/first_background_playfield.png"],
     ["BGSCORE", "img/first_background_score.png"],
@@ -52,18 +64,6 @@ var sndInfo = [
     ["KEYUP4", "snd/keyup4"]
 ];
 
-var cmdQueue = [];
-var keyBuffer = [];
-
-var blockOld;
-var blockOldRef;
-
-var timeouts = [];
-var keyStates = [];
-
-var oldCursorX = 0;
-var oldCursorY = 0;
-
 // Renderer
 
 function renderer_Init() {
@@ -91,17 +91,6 @@ function renderer_RenderRow(row) {
             ctx.drawImage(images[type != 0 ? "BLOCK" : "DOT"], (col * 2 + 27) * 8, (row + 1) * 16);
         }
     });
-}
-
-function renderBlock(block, imgName) {
-     for (var row = block.mPosY; row < block.mPosY + 4; row++) {
-        queueDrawCursorAt(0, row + 1);
-        for (var col = block.mPosX; col < block.mPosX + 4; col++) {
-            var type = block.mShape[block.mRot][row - block.mPosY][col - block.mPosX];
-            if (type != 0) { drawImage(imgName, col * 2 + 27, row + 1); }
-        }
-    }
-    queueDrawCursorAt(0, 0);
 }
 
 function renderer_RenderBlock() {
@@ -203,21 +192,34 @@ function keyboard_GetKey() {
 function sound_Play(name) {
 }
 
-// Utils
+// Utils (rendering)
+
+function renderBlock(block, imgName) {
+     for (var row = block.mPosY; row < block.mPosY + 4; row++) {
+        queueDrawCursorAt(0, row + 1);
+        for (var col = block.mPosX; col < block.mPosX + 4; col++) {
+            var type = block.mShape[block.mRot][row - block.mPosY][col - block.mPosX];
+            if (type != 0) { drawImage(imgName, col * 2 + 27, row + 1); }
+        }
+    }
+    queueDrawCursorAt(0, 0);
+}
+
+function queueDrawImage(img, x, y, X, Y) {
+    cmdQueue.push(function () {
+        ctx.drawImage(img, X, Y, 8, 16, x * 8 + X, y * 16 + Y, 8, 16);
+        drawCursorAt(x + X / 8, y + Y / 16);
+    }); 
+}
 
 function drawImage(imgName, x, y, noFx) {
     var img = images[imgName];
-    for (var _Y = 0; _Y < img.height; _Y += 16) {
+    for (var Y = 0; Y < img.height; Y += 16) {
         if (noFx == null || noFx == false) {
-            queueDrawCursorAt(0, y + _Y / 16);
+            queueDrawCursorAt(0, y + Y / 16);
         }
-        for (var _X = 0; _X < img.width; _X += 8) {
-            (function (X, Y) {
-                cmdQueue.push(function () {
-                    ctx.drawImage(img, X, Y, 8, 16, x * 8 + X, y * 16 + Y, 8, 16);
-                    drawCursorAt(x + X / 8, y + Y / 16);
-                }); 
-            })(_X, _Y);
+        for (var X = 0; X < img.width; X += 8) {
+            queueDrawImage(img, x, y, X, Y);
         }
     }
     if (noFx == null || noFx == false) {
@@ -251,6 +253,27 @@ function loadImage(name, src) {
     return deferred.promise();
 }
 
+function queueDrawCursorAt(x, y) {
+    cmdQueue.push(function () { drawCursorAt(x, y); }); 
+}
+
+function drawCursorAt(x, y) {
+    var state = Math.floor(Date.now() % 1000 / 100) % 2 == 0;
+    if (x != oldCursorX || y != oldCursorY) {
+        ctx.drawImage(images.CURSORBLANK, oldCursorX * 8, oldCursorY * 16 + 13);    
+    }
+    ctx.drawImage(images[state ? "CURSOR" : "CURSORBLANK"], x * 8, y * 16 + 13);
+    oldCursorX = x;
+    oldCursorY = y;
+}
+
+function drawCursor() {
+    drawCursorAt(oldCursorX, oldCursorY);
+    setTimeout(drawCursor, 100);
+}
+
+// Utils (sound)
+
 function loadSound(name, file) {
     var deferred = $.Deferred();
     sounds[name] = new Howl({
@@ -258,30 +281,6 @@ function loadSound(name, file) {
         onload: function () { deferred.resolve(); }
     });
     return deferred.promise();
-}
-
-// Main
-
-function gameLoop() {
-    JSTe3s.Program.play();
-    if (cmdQueue.length == 0) {
-        setTimeout(gameLoop, 0);
-    } else {
-        setTimeout(animLoop, 0);
-    }
-}
-
-function animLoop() {
-    var i = 22;
-    if (cmdQueue.length > i) {
-        setTimeout(animLoop, 16);   
-    } else {
-        setTimeout(gameLoop, 0);
-    }
-    while (cmdQueue.length > 0 && --i >= 0) {
-        cmdQueue[0]();
-        cmdQueue.shift();
-    }
 }
 
 function other(track) {
@@ -309,23 +308,28 @@ function playBgNoise(track, vol, id) {
     timeouts[id2] = 1;
 }
 
-function queueDrawCursorAt(x, y) {
-    cmdQueue.push(function () { drawCursorAt(x, y); }); 
-}
+// Main
 
-function drawCursorAt(x, y) {
-    var state = Math.floor(Date.now() % 1000 / 100) % 2 == 0;
-    if (x != oldCursorX || y != oldCursorY) {
-        ctx.drawImage(images["CURSORBLANK"], oldCursorX * 8, oldCursorY * 16 + 13);    
+function gameLoop() {
+    JSTe3s.Program.play();
+    if (cmdQueue.length == 0) {
+        setTimeout(gameLoop, 0);
+    } else {
+        setTimeout(animLoop, 0);
     }
-    ctx.drawImage(images[state ? "CURSOR" : "CURSORBLANK"], x * 8, y * 16 + 13);
-    oldCursorX = x;
-    oldCursorY = y;
 }
 
-function drawCursor() {
-    drawCursorAt(oldCursorX, oldCursorY);
-    setTimeout(drawCursor, 100);
+function animLoop() {
+    var i = 22;
+    if (cmdQueue.length > i) {
+        setTimeout(animLoop, 16);   
+    } else {
+        setTimeout(gameLoop, 0);
+    }
+    while (cmdQueue.length > 0 && --i >= 0) {
+        cmdQueue[0]();
+        cmdQueue.shift();
+    }
 }
 
 $(function () { // wait for document to load
@@ -360,11 +364,11 @@ $(function () { // wait for document to load
     for (var i = 0; i < imgInfo.length; i++) {
         loaders.push(loadImage(imgInfo[i][0], imgInfo[i][1]));
     }
-    for (var i = 0; i <= 9; i++) {
+    for (i = 0; i <= 9; i++) {
         loaders.push(loadImage(i, "img/first_" + i + ".png"));
     }
     // sounds
-    for (var i = 0; i < sndInfo.length; i++) {
+    for (i = 0; i < sndInfo.length; i++) {
         loaders.push(loadSound(sndInfo[i][0], sndInfo[i][1]));
     }
     // warn on unload
@@ -380,8 +384,8 @@ $(function () { // wait for document to load
             clearTimeout(id);
         }
         timeouts = [];
-        sounds["BGNOISE1"].stop();
-        sounds["BGNOISE2"].stop();
+        sounds.BGNOISE1.stop();
+        sounds.BGNOISE2.stop();
     });
     $(window).focus(function () {
         if (timeouts.length == 0) {
