@@ -37,7 +37,6 @@ function renderer_Init() {
     $("#score").text(0);
     $("#level").text(0);
     $("#lines").text(0);
-    updateShareLinks(0);
 }
 
 function renderer_RenderPlayfield() {
@@ -75,7 +74,6 @@ function renderer_ClearPause() {
 
 function renderer_RenderScore() {
     $("#score").text(JSTe3s.Program.mScore);
-    updateShareLinks(JSTe3s.Program.mScore);
 }
 
 function renderer_RenderNextBlock() {
@@ -202,14 +200,6 @@ function animLoop() {
     } else {
         setTimeout(gameLoop, 0);
     }
-}
-
-function updateShareLinks(score) {
-    var txt = "I%27m%20playing%20Tetromini.";
-    if (score > 0) { txt += "%20My%20score%20is%20" + score + "."; } 
-    $("#share-twitter").attr("href", "http://twitter.com/share?text=" + txt + "&url=http://tetromini.org");
-    $("#share-facebook").attr("href", "http://www.facebook.com/sharer.php?p[url]=http://tetromini.org");
-    $("#share-blogger").attr("href", "http://www.blogger.com/blog_this.pyra?t&u=http://tetromini.org&n=" + txt);
 }
 
 $(function () { // wait for document to load
